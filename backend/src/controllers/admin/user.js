@@ -1,0 +1,187 @@
+const User = require("../../models/user.js");
+const Story = require("../../models/story.js");
+const Plan = require("../../models/plan.js");
+const Subscription = require("../../models/subscription.js");
+
+const getUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize, 10) || 10;
+    const offset = (page - 1) * pageSize;
+    const sortOrder = req.query.sortOrder === "old" ? 1 : -1;
+    const search = req.query.search || "";
+
+    const query = {
+      isPublic: { $ne: true },
+    };
+
+    if (search) {
+      query.email = { $regex: search, $options: "i" };
+    }
+
+    const usersCount = await User.countDocuments(query);
+    const totalPages = Math.ceil(usersCount / pageSize);
+
+    const usersWithPlanInfo = await User.find(query)
+      .sort({ createdAt: sortOrder })
+      .skip(offset)
+      .limit(pageSize)
+      .populate({
+        path: "subscription",
+        select: "planId expiryDate",
+        populate: {
+          path: "planId",
+          model: "Plan",
+          select: "name -_id",
+        },
+      })
+      .lean({ virtuals: true });
+
+    const users = usersWithPlanInfo.map((u) => {
+      const { subscription, ...userFields } = u;
+      return {
+        ...userFields,
+        planName: subscription?.planId?.name || null,
+        expiryDate: subscription?.expiryDate || null,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Users returned successfully",
+      response: {
+        data: {
+          users,
+          total: usersCount,
+          page,
+          pageSize,
+          totalPages,
+        },
+      },
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: error.message,
+    });
+  }
+};
+
+const getDashboardData = async (req, res) => {
+  try {    
+    const query = {
+      isPublic: { $ne: true },
+    };
+
+    const usersCount = await User.countDocuments(query);
+    const storiesCount = await Story.countDocuments();
+    const subscriptionCount = await Subscription.countDocuments();
+
+    const usersWithPlanInfo = await User.find(query)
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .populate({
+        path: "subscription",
+        select: "planId expiryDate",
+        populate: {
+          path: "planId",
+          model: "Plan",
+          select: "name -_id",
+        },
+      })
+      .lean({ virtuals: true });
+
+    const users = usersWithPlanInfo.map((u) => {
+      const { subscription, ...userFields } = u;
+      return {
+        email: userFields?.email || null,
+        status: userFields?.status || null,
+        planName: subscription?.planId?.name || null,
+        expiryDate: subscription?.expiryDate || null,
+      };
+    });
+
+    const plans = await Plan.find({}).sort({ createdAt: -1 }).limit(3);
+
+    return res.status(200).json({
+      message: "Dashboard data returned successfully",
+      response: {
+        data: {
+          users,
+          plans,
+          totalUsers: usersCount,
+          totalStories: storiesCount,
+          totalActivePlans: subscriptionCount,
+        },
+      },
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: error.message,
+    });
+  }
+};
+
+const updateStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.query;
+
+    const user = await User.findById(userId)
+      .select("status emailVerified")
+      .exec();
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        response: null,
+        error: "User not found",
+      });
+    }
+
+    let message;
+
+    if (status === "un-block" && user.status !== "blocked") {
+      return res.status(200).json({
+        message: "User is not currently blocked, no action taken",
+        response: null,
+        error: null,
+      });
+    } else if (status === "block" && user.status === "blocked") {
+      return res.status(200).json({
+        message: "User is already blocked",
+        response: null,
+        error: null,
+      });
+    } else if (status === "block") {
+      user.status = "blocked";
+      await user.save();
+      message = "User has been blocked successfully";
+    } else {
+      user.status = user.emailVerified ? "active" : "pending";
+      await user.save();
+      message = `User has been un‐blocked and set to "${user.status}"`;
+    }
+
+    return res.status(200).json({
+      message,
+      response: null,
+      error: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: err.message,
+    });
+  }
+};
+
+module.exports = {
+  getUsers,
+  getDashboardData,
+  updateStatus,
+};
