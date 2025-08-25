@@ -12,6 +12,7 @@ const version = process.env.API_VERSION;
 const allowedOrigins = [
   "http://localhost:3000",
   "https://capturingstorygems.vercel.app",
+  "https://www.capturingstorygems.com"
 ];
 
 app.use(
@@ -51,4 +52,5 @@ app.use(`/api/${version}/admin`, adminRoutes);
 app.listen(port, () => {
   console.log(`${appName} App is Running at port ${port}`);
 });
+
 
