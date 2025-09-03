@@ -150,13 +150,6 @@ export default function ClarityQuestions() {
                 placeholder="Type your answer here..."
                 className="w-full h-36 sm:h-48 lg:h-55 p-4 border border-[#A8DADC] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#457B9D] focus:border-transparent text-[#457B9D] bg-[#F1FAEE] placeholder-[#457B9D] text-base sm:text-lg lg:text-xl"
               />
-              <Image
-                src={"/speak.svg"}
-                width={25}
-                height={25}
-                alt="Loader"
-                className="object-contain absolute top-5 right-5"
-              />
             </div>
 
             {/* Navigation Buttons */}
