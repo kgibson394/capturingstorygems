@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
-import { useSwipeable } from "react-swipeable";
-import { handleSessionExpiry } from "@/utils/handleSessionExpiry";
-import { toast } from "sonner";
 import { MdAutoStories } from "react-icons/md";
+import { RxCross1 } from "react-icons/rx";
+import { useSwipeable } from "react-swipeable";
+import { toast } from "sonner";
+import { handleSessionExpiry } from "@/utils/handleSessionExpiry";
 const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 
 type Story = {
@@ -20,6 +21,18 @@ export default function Testimonials() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [leafData, setLeafData] = useState<Story[]>([]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [modalOpen]);
 
   const nextTestimonial = () => {
     setCurrent((prev) => (prev + 1) % leafData.length);
@@ -202,9 +215,16 @@ export default function Testimonials() {
               onClick={() => setModalOpen(false)}
             >
               <div
-                className="relative bg-white p-8 sm:p-10 w-full max-w-sm sm:max-w-md lg:max-w-lg h-auto rounded-2xl shadow-2xl border border-gray-100 flex flex-col justify-between"
+                className="relative bg-white p-8 sm:p-10 w-10/12 h-11/12 rounded-2xl shadow-2xl border border-gray-100 flex flex-col justify-between overflow-hidden overflow-y-scroll"
                 onClick={(e) => e.stopPropagation()}
               >
+                <button
+                  onClick={() => setModalOpen(false)}
+                  className="absolute font-extrabold top-4 right-4 text-[#1D3557] hover:text-red-500 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <RxCross1 size={22} />
+                </button>
                 <div className="flex justify-center mb-6">
                   <div className="bg-gradient-to-br from-[#457B9D] to-[#1D3557] p-3 rounded-full shadow-lg">
                     <Quote className="w-8 h-8 text-white" />
@@ -212,16 +232,19 @@ export default function Testimonials() {
                 </div>
 
                 <div className="text-center">
-                  <p className="font-semibold text-[#1D3557] tracking-wider text-sm sm:text-base">
+                  <p className="font-semibold text-[#1D3557] tracking-wider text-xl sm:text-2xl">
                     {leafData[current].title}
                   </p>
                   <div className="w-16 h-0.5 bg-gradient-to-r from-[#457B9D] to-[#1D3557] mx-auto my-4"></div>
                 </div>
 
                 <div className="mb-8">
-                  <p className="text-lg sm:text-xl leading-relaxed text-[#1D3557] font-light italic text-center animate-fade-in">
-                    &quot;{leafData[current].story}&quot;
-                  </p>
+                  <p
+                    className="text-base sm:text-md leading-snug text-[#1D3557] font-light animate-fade-in"
+                    dangerouslySetInnerHTML={{
+                      __html: leafData[current].story.replace(/\n/g, "<br/>"),
+                    }}
+                  ></p>
                 </div>
               </div>
             </div>
