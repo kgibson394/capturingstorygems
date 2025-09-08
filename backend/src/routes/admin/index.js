@@ -7,6 +7,7 @@ const planRoutes = require("./plan.js");
 const storyRoutes = require("./story.js");
 const promptRoutes = require("./prompt.js");
 const publicUserRoutes = require("./publicUser.js");
+const groupRoutes = require("./group.js");
 
 router.use("/auth", authRoutes);
 router.use("/user", userRoutes);
@@ -14,5 +15,6 @@ router.use("/plan", planRoutes);
 router.use("/story", storyRoutes);
 router.use("/prompt", promptRoutes);
 router.use("/public-user", publicUserRoutes);
+router.use("/group", groupRoutes);
 
 module.exports = router;
