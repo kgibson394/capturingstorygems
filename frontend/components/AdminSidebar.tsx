@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { FiHome } from "react-icons/fi";
-import { FaUsers, FaCrown } from "react-icons/fa";
 import { RiLogoutCircleLine } from "react-icons/ri";
-import { IoCodeSlashOutline, IoPeopleOutline } from "react-icons/io5";
+import { IoCodeSlashOutline } from "react-icons/io5";
 import { MdOutlineAutoStories } from "react-icons/md";
+import { LiaUser, LiaUsersSolid, LiaCrownSolid, LiaHomeSolid, LiaUserFriendsSolid } from "react-icons/lia";
 
 const SIDEBAR_WIDTH = {
   expanded: "w-56",
@@ -21,17 +20,22 @@ interface SidebarProps {
 
 const menu = [
   {
-    icon: <FiHome />,
+    icon: <LiaHomeSolid />,
     label: "Home",
     href: "/admin/",
   },
   {
-    icon: <FaUsers />,
+    icon: <LiaUser />,
     label: "Users",
     href: "/admin/users",
   },
-    {
-    icon: <IoPeopleOutline />,
+  {
+    icon: <LiaUsersSolid />,
+    label: "Groups",
+    href: "/admin/groups",
+  },
+  {
+    icon: <LiaUserFriendsSolid />,
     label: "Public Users",
     href: "/admin/public-users",
   },
@@ -46,7 +50,7 @@ const menu = [
     href: "/admin/stories",
   }, 
   {
-    icon: <FaCrown />,
+    icon: <LiaCrownSolid />,
     label: "Plans",
     href: "/admin/plans",
   },
