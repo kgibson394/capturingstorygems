@@ -58,6 +58,11 @@ const userSchema = new Schema(
       },
       default: null,
     },
+     groupId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Group',
+      default: null,
+    },
   },
   { timestamps: true }
 );

@@ -12,7 +12,6 @@ const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [errors, setErrors] = useState({ email: "", password: "" });
@@ -113,21 +112,7 @@ const Login = () => {
               <p className="joi-error-message mb-4">{errors?.password[0]}</p>
             )}
 
-            <div className="flex items-center my-2">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className="h-4 w-4 text-[#1D3557] cursor-pointer"
-              />
-              <div className="flex justify-between items-center w-full">
-                <label
-                  htmlFor="rememberMe"
-                  className="text-[#1D3557] text-xs ml-1 cursor-pointer"
-                >
-                  Remember me
-                </label>
+              <div className="flex justify-end items-center w-full">
                 <Link
                   href="/forgot-password"
                   className="font-semibold text-sm underline decoration-[#1D3557] hover:decoration-transparent"
@@ -135,7 +120,6 @@ const Login = () => {
                   Forgot Password
                 </Link>
               </div>
-            </div>
 
             <AuthButton
               text="Log in"

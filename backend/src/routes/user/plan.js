@@ -17,7 +17,7 @@ router.post(
   createCheckout
 );
 
-router.get("/", verifyUserToken, blockPublicUsers, getAllPlans);
+router.get("/", getAllPlans);
 
 router.get("/subscription", verifyUserToken, blockPublicUsers, getSubscription);
 

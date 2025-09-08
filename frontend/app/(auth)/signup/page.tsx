@@ -14,7 +14,6 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
@@ -146,24 +145,6 @@ const SignUp = () => {
                 {errors?.confirmPassword[0]}
               </p>
             )}
-
-            <div className="flex items-center mb-2">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className="h-4 w-4 text-[#1D3557] cursor-pointer"
-              />
-              <div className="flex justify-between items-center w-full">
-                <label
-                  htmlFor="rememberMe"
-                  className="text-[#1D3557] text-xs ml-1 cursor-pointer"
-                >
-                  Remember me
-                </label>
-              </div>
-            </div>
 
             <AuthButton
               text="Sign Up"
