@@ -9,6 +9,7 @@ const {
   updatePassword,
   forgotPassword,
   resetPassword,
+  supportRequest,
 } = require("../../controllers/user/auth.js");
 const { bodyValidator } = require("../../middlewares/joi.js");
 const { verifyUserToken } = require("../../middlewares/authMiddleware.js");
@@ -35,5 +36,7 @@ router.put(
   bodyValidator("passwordUpdate"),
   updatePassword
 );
+
+router.post("/support-request", bodyValidator("supportRequestSchema"), supportRequest);
 
 module.exports = router;

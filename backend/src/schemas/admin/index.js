@@ -104,4 +104,45 @@ module.exports = {
       "string.empty": "Story cannot be empty",
     }),
   }),
+
+  groupSchema: Joi.object({
+    groupTag: Joi.string().required().messages({
+      "any.required": "Group tag is required",
+      "string.empty": "Group tag cannot be empty",
+    }),
+    name: Joi.string().required().messages({
+      "any.required": "Group name is required",
+      "string.empty": "Group name cannot be empty",
+    }),
+  }),
+
+  userIdSchema: Joi.object({
+    userId: Joi.string()
+      .regex(/^[0-9a-fA-F]{24}$/)
+      .required()
+      .messages({
+        "any.required": "User ID is required",
+        "string.empty": "User ID cannot be empty",
+        "string.pattern.base": "User ID must be a valid MongoDB ObjectId",
+      }),
+  }),
+
+  userIdsSchema: Joi.object({
+    userIds: Joi.array()
+      .items(
+        Joi.string()
+          .regex(/^[0-9a-fA-F]{24}$/)
+          .messages({
+            "string.pattern.base":
+              "Each User ID must be a valid MongoDB ObjectId",
+          })
+      )
+      .min(1)
+      .required()
+      .messages({
+        "any.required": "At least one User ID is required",
+        "array.base": "User IDs must be an array",
+        "array.min": "At least one User ID must be provided",
+      }),
+  }),
 };

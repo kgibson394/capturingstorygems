@@ -671,6 +671,7 @@ export default function GroupManagement() {
 
                   <button
                     onClick={() => handleCreate()}
+                    disabled={loading}
                     className="px-6 py-3 bg-gradient-to-r from-[#2b4e7e] to-[#1D3557] text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center space-x-2 group"
                   >
                     <IoCheckmark className="w-4 h-4 group-hover:rotate-12 transition-transform" />
@@ -788,6 +789,7 @@ export default function GroupManagement() {
               </button>
               <button
                 onClick={() => handleDelete()}
+                disabled={loading}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Delete
@@ -878,6 +880,7 @@ export default function GroupManagement() {
                             onClick={() =>
                               handleRemoveMember(groupId ?? "", m._id)
                             }
+                            disabled={loading}
                             className="ml-4 flex-none px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium"
                             aria-label={`Remove ${m.email}`}
                           >
@@ -1015,6 +1018,7 @@ export default function GroupManagement() {
                     </button>
                     <button
                       onClick={() => handleSaveMembers()}
+                      disabled={loading}
                       className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg transform hover:scale-[1.02]"
                     >
                       Save Changes

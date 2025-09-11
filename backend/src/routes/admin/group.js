@@ -10,18 +10,19 @@ const {
   deleteGroup,
 } = require("../../controllers/admin/group");
 const { verifyAdminToken } = require("../../middlewares/authMiddleware.js");
+const { bodyValidator } = require("../../middlewares/joi");
 
 router.get("/", verifyAdminToken, getGroups);
 
 router.get("/users", verifyAdminToken, getUsers);
 
-router.post("/", verifyAdminToken, createGroup);
+router.post("/", verifyAdminToken, bodyValidator("groupSchema"), createGroup);
 
-router.put("/:id/add-users", verifyAdminToken, addUsersToGroup);
+router.put("/:id/add-users", verifyAdminToken, bodyValidator("userIdsSchema"), addUsersToGroup);
 
-router.put("/:id/remove-user", verifyAdminToken, removeUserFromGroup);
+router.put("/:id/remove-user", verifyAdminToken, bodyValidator("userIdSchema"), removeUserFromGroup);
 
-router.put("/:id", verifyAdminToken, updateGroup);
+router.put("/:id", verifyAdminToken, bodyValidator("groupSchema"), updateGroup);
 
 router.delete("/:id", verifyAdminToken, deleteGroup);
 

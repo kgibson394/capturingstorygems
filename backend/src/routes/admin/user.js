@@ -4,6 +4,7 @@ const {
   getUsers,
   getDashboardData,
   updateStatus,
+  deleteUser,
 } = require("../../controllers/admin/user");
 const { queryValidator } = require("../../middlewares/joi.js");
 const { verifyAdminToken } = require("../../middlewares/authMiddleware.js");
@@ -18,5 +19,7 @@ router.put(
   queryValidator("updateStatus"),
   updateStatus
 );
+
+router.delete("/:userId", verifyAdminToken, deleteUser);
 
 module.exports = router;

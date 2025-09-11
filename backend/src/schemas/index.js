@@ -5,6 +5,9 @@ const {
   createPlanSchema,
   updatePromptSchema,
   publicStorySchema,
+  groupSchema,
+  userIdSchema,
+  userIdsSchema,
 } = require("./admin");
 
 const {
@@ -19,6 +22,7 @@ const {
   passwordUpdate,
   updatePublicUserSchema,
   storySchema,
+  supportRequestSchema,
 } = require("./users/index");
 
 module.exports = {
@@ -28,6 +32,9 @@ module.exports = {
   createPlanSchema,
   updatePromptSchema,
   publicStorySchema,
+  groupSchema,
+  userIdSchema,
+  userIdsSchema,
   userRegisterSchema,
   publicUserRegisterSchema,
   googleLogin,
@@ -39,4 +46,5 @@ module.exports = {
   passwordUpdate,
   updatePublicUserSchema,
   storySchema,
+  supportRequestSchema,
 };

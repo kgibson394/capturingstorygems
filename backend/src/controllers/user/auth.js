@@ -9,6 +9,7 @@ const {
   resendOtpEmail,
   forgotPasswordEmail,
   passwordResetConfirmationEmail,
+  supportRequestEmail,
 } = require("../../data/emails.js");
 
 const salt = configurations.salt;
@@ -447,6 +448,31 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const supportRequest = async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    const dynamicData = {
+      subject: "New Support Request",
+      to_email: configurations.supportEmail,
+    };
+    const emailTemplate = await supportRequestEmail(name, email, message);
+    await sendMail(emailTemplate, dynamicData);
+
+    return res.status(200).json({
+      message: "Thanks for reaching out! Our team will get back to you shortly",
+      response: null,
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   googleLoginUser,
@@ -456,4 +482,5 @@ module.exports = {
   updatePassword,
   forgotPassword,
   resetPassword,
+  supportRequest,
 };

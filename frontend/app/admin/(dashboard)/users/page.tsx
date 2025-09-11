@@ -6,6 +6,7 @@ import { FaUserPlus, FaUserMinus } from "react-icons/fa";
 import { FiUsers, FiSearch } from "react-icons/fi";
 import { toast } from "sonner";
 import { handleSessionExpiry } from "@/utils/handleSessionExpiry";
+import { RiDeleteBin6Fill } from "react-icons/ri";
 const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 
 type User = {
@@ -33,6 +34,8 @@ export default function Page() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [disabledStatus, setDisabledStatus] = useState("");
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"new" | "old">("new");
 
   const debouncedSearch = useCallback(() => {
@@ -189,6 +192,41 @@ export default function Page() {
     );
   };
 
+  const openDelete = (id: string) => {
+    setUserId(id);
+    setIsDeleteOpen(true);
+  };
+
+  const handlDelete = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${serverBaseUrl}/admin/user/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        if (handleSessionExpiry(data.message, router, true)) return;
+        toast.error(data.message || "Failed to delete user");
+        return;
+      }
+
+      toast.success(data.message);
+      setIsDeleteOpen(false);
+      await loadUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Failed to delete user");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="flex-1 p-3 md:p-4 lg:p-8 bg-gray-50 min-h-screen overflow-x-auto">
       <div className="max-w-[1440px] mx-auto w-full">
@@ -254,9 +292,6 @@ export default function Page() {
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
                   </th>
-                  {/* <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th> */}
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Plan
                   </th>
@@ -308,19 +343,6 @@ export default function Page() {
                           {user.email}
                         </div>
                       </td>
-                      {/* <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            user.type === "New"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {user.type}
-                        </span>
-                      </td> */}
-                      {/* // bg-[#1D3557] text-white hover:bg-[#192e4b] */}
-
                       <UserPlanRow
                         planName={user.planName}
                         expiryDate={user.expiryDate}
@@ -339,47 +361,61 @@ export default function Page() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {user.status !== "blocked" ? (
-                          <div className="relative group">
-                            <button
-                              onClick={() =>
-                                handleChangeStatus("block", user._id)
-                              }
-                              className="px-2 py-2 rounded-lg transition-colors border border-red-800 text-red-800"
-                              disabled={disabledStatus === user._id}
-                            >
-                              <FaUserMinus size={20} />
-                            </button>
-                            <div className="absolute bottom-full right-full hidden group-hover:block bg-red-200 text-red-800 text-xs rounded py-1 px-2 z-10">
-                              Block
+                        <div className="flex gap-2">
+                          {user.status !== "blocked" ? (
+                            <div className="relative group">
+                              <button
+                                onClick={() =>
+                                  handleChangeStatus("block", user._id)
+                                }
+                                className="px-2 py-2 rounded-lg transition-colors border border-red-800 text-red-800"
+                                disabled={disabledStatus === user._id}
+                              >
+                                <FaUserMinus size={20} />
+                              </button>
+                              <div className="absolute bottom-full right-full hidden group-hover:block bg-red-200 text-red-800 text-xs rounded py-1 px-2 z-10">
+                                Block
+                              </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="relative group">
-                            <button
-                              onClick={() =>
-                                handleChangeStatus("un-block", user._id)
-                              }
-                              className={`px-2 py-2 rounded-lg transition-colors border ${
-                                user.emailVerified
-                                  ? "border-green-800 text-green-800"
-                                  : "border-yellow-500 text-yellow-500"
-                              }`}
-                              disabled={disabledStatus === user._id}
-                            >
-                              <FaUserPlus size={20} />
-                            </button>
-                            <div
-                              className={`absolute bottom-full right-full hidden group-hover:block ${
-                                user.emailVerified
-                                  ? "bg-green-200 text-green-800"
-                                  : "bg-yellow-200 text-yellow-800"
-                              } text-xs rounded py-1 px-2 z-10`}
-                            >
-                              Un-Block
+                          ) : (
+                            <div className="relative group">
+                              <button
+                                onClick={() =>
+                                  handleChangeStatus("un-block", user._id)
+                                }
+                                className={`px-2 py-2 rounded-lg transition-colors border ${
+                                  user.emailVerified
+                                    ? "border-green-800 text-green-800"
+                                    : "border-yellow-500 text-yellow-500"
+                                }`}
+                                disabled={disabledStatus === user._id}
+                              >
+                                <FaUserPlus size={20} />
+                              </button>
+                              <div
+                                className={`absolute bottom-full right-full hidden group-hover:block ${
+                                  user.emailVerified
+                                    ? "bg-green-200 text-green-800"
+                                    : "bg-yellow-200 text-yellow-800"
+                                } text-xs rounded py-1 px-2 z-10`}
+                              >
+                                Un-Block
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+
+                          <div className="relative group">
+                              <button
+                                onClick={() => openDelete(user._id)}
+                                className="px-2 py-2 rounded-lg transition-colors border border-red-800 text-red-800"
+                              >
+                                <RiDeleteBin6Fill size={20} />
+                              </button>
+                              <div className="absolute bottom-full right-full hidden group-hover:block bg-red-200 text-red-800 text-xs rounded py-1 px-2 z-10">
+                                Delete
+                              </div>
+                            </div>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -452,6 +488,35 @@ export default function Page() {
           </div>
         </div>
       </div>
+
+      {isDeleteOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-start justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mt-12">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Confirm Deletion
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsDeleteOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handlDelete()}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
-};
+}

@@ -1,0 +1,9 @@
+/node_modules
+/uploads
+node_modules
+/.pnp
+.pnp.js
+/coverage
+/.env
+.env
+

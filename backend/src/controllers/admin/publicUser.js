@@ -152,6 +152,9 @@ const deleteUser = async (req, res) => {
         error: "User not found",
       });
     }
+    await Promise.all([
+      Story.deleteMany({ userId }),
+    ]);
 
     return res.status(200).json({
       message: "User deleted successfully",

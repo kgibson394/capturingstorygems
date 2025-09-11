@@ -1,6 +1,8 @@
 const User = require("../../models/user.js");
 const Story = require("../../models/story.js");
 const Plan = require("../../models/plan.js");
+const Group = require("../../models/group.js");
+const Payment = require("../../models/payment.js");
 const Subscription = require("../../models/subscription.js");
 
 const getUsers = async (req, res) => {
@@ -69,7 +71,7 @@ const getUsers = async (req, res) => {
 };
 
 const getDashboardData = async (req, res) => {
-  try {    
+  try {
     const query = {
       isPublic: { $ne: true },
     };
@@ -180,8 +182,43 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        response: null,
+        error: "User not found",
+      });
+    }
+
+    await Group.updateMany({ users: userId }, { $pull: { users: userId } });
+    await Promise.all([
+      Payment.deleteMany({ userId: userId }),
+      Subscription.deleteMany({ userId }),
+      Story.deleteMany({ userId }),
+    ]);
+
+    return res.status(200).json({
+      message: "User deleted successfully",
+      response: null,
+      error: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   getUsers,
   getDashboardData,
   updateStatus,
+  deleteUser,
 };

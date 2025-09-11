@@ -1353,6 +1353,160 @@ const checkoutSuccessEmail = async (planName, startDate, expiryDate) => {
   `;
 };
 
+const supportRequestEmail = async (name, email, message) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Support Request Email</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .email-container {
+          background-color: #ffffff;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+        .header {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 30px 20px;
+          text-align: center;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 300;
+        }
+        .header p {
+          margin: 10px 0 0 0;
+          opacity: 0.9;
+          font-size: 14px;
+        }
+        .content {
+          padding: 30px;
+        }
+        .form-field {
+          margin-bottom: 25px;
+          border-left: 4px solid #667eea;
+          padding-left: 15px;
+        }
+        .field-label {
+          font-weight: 600;
+          color: #555;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          display: block;
+        }
+        .field-value {
+          font-size: 16px;
+          color: #333;
+          line-height: 1.5;
+          word-wrap: break-word;
+        }
+        .message-field {
+          background-color: #f8f9fa;
+          border-radius: 4px;
+          padding: 15px;
+          border: 1px solid #e9ecef;
+        }
+        .timestamp {
+          background-color: #f8f9fa;
+          padding: 15px;
+          border-radius: 4px;
+          margin-top: 20px;
+          font-size: 14px;
+          color: #666;
+          text-align: center;
+        }
+        .footer {
+          background-color: #f8f9fa;
+          padding: 20px;
+          text-align: center;
+          border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+          margin: 0;
+          font-size: 14px;
+          color: #666;
+        }
+        .priority-badge {
+          display: inline-block;
+          background-color: #28a745;
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        @media (max-width: 600px) {
+          body {
+              padding: 10px;
+          }
+          .content {
+              padding: 20px;
+          }
+          .header {
+              padding: 20px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1>New Support Request Email</h1>
+          <p>A customer has reached out through your website</p>
+        </div>
+        <div class="content">
+          <div style="margin-bottom: 20px;">
+            <span class="priority-badge">New Inquiry</span>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Customer Name</span>
+            <div class="field-value">${name}</div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Email Address</span>
+            <div class="field-value">
+              <a href="mailto:${email}" style="color: #667eea; text-decoration: none;">
+                ${email}
+              </a>
+            </div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">Message</span>
+            <div class="field-value message-field">
+              ${message}
+            </div>
+          </div>
+        </div>
+        <div class="footer">
+          <p><strong>Help Desk System</strong> | Please respond within 24 hours</p>
+          <p style="margin-top: 10px; font-size: 12px; color: #999;">
+            This message was automatically generated from your website contact form.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 module.exports = {
   signupEmail,
   resendOtpEmail,
@@ -1360,4 +1514,5 @@ module.exports = {
   passwordResetConfirmationEmail,
   generateStoryEmail,
   checkoutSuccessEmail,
+  supportRequestEmail,
 };

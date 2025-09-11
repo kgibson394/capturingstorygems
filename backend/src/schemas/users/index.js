@@ -298,4 +298,27 @@ module.exports = {
       "string.max": "Story cannot exceed 10,000 characters",
     }),
   }),
+
+  supportRequestSchema: Joi.object({
+    name: Joi.string().max(100).required().messages({
+      "any.required": "Name is required",
+      "string.empty": "Name cannot be empty",
+      "string.max": "Name cannot exceed 100 characters",
+    }),
+    email: Joi.string()
+      .trim()
+      .lowercase()
+      .email({ minDomainSegments: 2 })
+      .required()
+      .messages({
+        "string.email": "Enter a valid email address",
+        "any.required": "Email is required",
+        "string.empty": "Email is not allowed to be empty",
+      }),
+    message: Joi.string().max(1000).required().messages({
+      "any.required": "Message is required",
+      "string.empty": "Message cannot be empty",
+      "string.max": "Message cannot exceed 1000 characters",
+    }),
+  }),
 };

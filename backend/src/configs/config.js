@@ -9,6 +9,7 @@ const openAiKey = process.env.OPENAI_API_KEY;
 
 const gmailUser = process.env.GMAIL_USER;
 const gmailPassword = process.env.GMAIL_PASSWORD;
+const supportEmail = process.env.SUPPORT_EMAIL
 
 const frontendBaseUrl = process.env.FRONTEND_BASE_URL;
 const configurations = {
@@ -21,6 +22,7 @@ const configurations = {
   openAiKey,
   gmailUser,
   gmailPassword,
+  supportEmail,
   frontendBaseUrl,
 };
 
