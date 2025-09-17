@@ -7,7 +7,7 @@ const {
   pauseSubscription,
   resumeSubscription,
 } = require("../../controllers/user/plan.js");
-const { verifyUserToken } = require("../../middlewares/authMiddleware.js");
+const { verifyUserToken, verifyToken } = require("../../middlewares/authMiddleware.js");
 const { blockPublicUsers } = require("../../middlewares/blockPublicUsers.js");
 
 router.post(
@@ -17,7 +17,7 @@ router.post(
   createCheckout
 );
 
-router.get("/", getAllPlans);
+router.get("/", verifyToken, getAllPlans);
 
 router.get("/subscription", verifyUserToken, blockPublicUsers, getSubscription);
 

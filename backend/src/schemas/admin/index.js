@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const objectIdPattern = /^[0-9a-fA-F]{24}$/;
 
 module.exports = {
   paginationSchema: Joi.object({
@@ -79,6 +80,13 @@ module.exports = {
     featured: Joi.boolean().required().messages({
       "boolean.base": "Featured must be a 'true' or 'false'",
       "any.required": "Featured must be a 'true' or 'false'",
+    }),
+    group: Joi.string()
+      .allow("", null)
+      .pattern(objectIdPattern)
+      .messages({
+        "string.base": "Group must be a string",
+        "string.pattern.base": "Group must be a valid MongoDB ObjectId",
     }),
   }),
 

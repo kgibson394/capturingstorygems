@@ -85,7 +85,44 @@ const verifyAdminToken = (req, res, next) => {
   }
 };
 
+const verifyToken = (req, res, next) => {
+  let token = req.headers["x-access-token"] || req.headers["authorization"];
+  if (token) {
+    token = token.replace("Bearer ", "");
+    
+    jwt.verify(token, jwtSecret, async (err, decoded) => {
+      if (err) {
+        req.decoded = {};
+        return next();
+      }
+      const email = decoded?.user?.email;
+      const user = await User.findOne({ email }).select("email emailVerified isPublic");
+      if (!user) {
+        req.decoded = {};
+        return next();
+      }
+      if (!user?.emailVerified) {
+        return res.status(400).json({
+          message: "Email not verified",
+          response: null,
+          error: "Email not verified",
+        });
+      }
+      if (user.status === "blocked") {
+        req.decoded = {};
+        return next();
+      }
+      req.decoded = user;
+      return next();
+    });
+  } else {
+    req.decoded = {};
+    return next();
+  }
+};
+
 module.exports = {
   verifyUserToken,
   verifyAdminToken,
+  verifyToken,
 };

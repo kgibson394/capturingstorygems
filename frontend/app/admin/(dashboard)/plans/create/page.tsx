@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,10 +15,17 @@ interface PlanFormData {
   featured: boolean;
   allowedStories: number;
   features: string[];
+  group: string;
 }
+
+type Group = {
+  _id: string;
+  groupTag: string;
+};
 
 export default function Page() {
   const router = useRouter();
+  const [groups, setGroups] = useState<Group[]>([]);
   const [formData, setFormData] = useState<PlanFormData>({
     name: "",
     type: "",
@@ -27,6 +34,7 @@ export default function Page() {
     featured: false,
     allowedStories: 1,
     features: [],
+    group: "",
   });
 
   const [errors, setErrors] = useState({
@@ -37,10 +45,41 @@ export default function Page() {
     allowedStories: "",
     featured: "",
     features: "",
+    group: "",
   });
 
   const [newFeature, setNewFeature] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const getAllGroups = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${serverBaseUrl}/admin/group/all`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          if (handleSessionExpiry(data.message, router, true)) return;
+          toast.error(data.message || "Failed to fetch groups");
+          return;
+        }
+
+        setGroups(data?.response?.data?.groups);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to fetch groups");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getAllGroups();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -63,6 +102,8 @@ export default function Page() {
       [name]:
         isCheckbox && e.target instanceof HTMLInputElement
           ? e.target.checked
+          : name === "group" && value === ""
+          ? null
           : value,
     }));
   };
@@ -102,6 +143,7 @@ export default function Page() {
       allowedStories: "",
       featured: "",
       features: "",
+      group: "",
     });
 
     try {
@@ -290,7 +332,9 @@ export default function Page() {
                 placeholder="Enter allowed stories"
               />
               {errors?.allowedStories && (
-                <p className="joi-error-message mb-4">{errors?.allowedStories[0]}</p>
+                <p className="joi-error-message mb-4">
+                  {errors?.allowedStories[0]}
+                </p>
               )}
             </div>
 
@@ -373,6 +417,32 @@ export default function Page() {
             )}
           </div>
 
+          <div className="space-y-4">
+            <label
+              htmlFor="group"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Group
+            </label>
+            <select
+              id="group"
+              name="group"
+              value={formData.group}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg transition-colors cursor-pointer"
+            >
+              <option value="">
+                Select Group
+              </option>
+              {groups.map((group) => 
+                <option key={group._id} value={group._id}>{group.groupTag}</option>
+              )}
+            </select>
+            {errors?.group && (
+              <p className="joi-error-message mb-4">{errors?.group[0]}</p>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
@@ -400,4 +470,4 @@ export default function Page() {
       </div>
     </main>
   );
-};
+}

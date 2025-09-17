@@ -1,14 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import PricingCard from "@/components/ui/PricingCard";
-import { handleSessionExpiry } from "@/utils/handleSessionExpiry";
 const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 
 const PricingSection = () => {
-  const router = useRouter();
   const [plans, setPlans] = useState([]);
 
   useEffect(() => {
@@ -17,15 +14,16 @@ const PricingSection = () => {
 
   const fetchPlans = async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`${serverBaseUrl}/user/plan/`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await response.json();
       if (!response.ok) {
-        if (handleSessionExpiry(data.message, router)) return;
         const msg = data.message || "Failed to fetch plans";
         return toast.error(msg);
       } else {

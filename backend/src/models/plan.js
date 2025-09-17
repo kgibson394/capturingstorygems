@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+const { Schema, model, Types } = require("mongoose");
 
 const planSchema = new Schema(
   {
@@ -22,6 +22,11 @@ const planSchema = new Schema(
     billingCycle: {
       type: String,
       default: "monthly",
+    },
+    group: {
+      type: Types.ObjectId,
+      ref: "Group",
+      default: null,
     },
     features: [String],
     featured: {

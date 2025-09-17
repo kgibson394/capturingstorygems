@@ -1,4 +1,5 @@
 const Plan = require("../../models/plan");
+const Group = require("../../models/group");
 
 const getPlans = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ const getPlans = async (req, res) => {
     const plans = await Plan.find({})
       .skip(offset)
       .limit(pageSize)
+      .populate("group", "_id groupTag")
       .lean({ virtuals: true });
 
     return res.status(200).json({
@@ -38,7 +40,27 @@ const getPlans = async (req, res) => {
 
 const createPlan = async (req, res) => {
   try {
-    const { name, type, price, billingCycle, allowedStories, features, featured } = req.body;
+    const {
+      name,
+      type,
+      price,
+      billingCycle,
+      allowedStories,
+      features,
+      featured,
+      group,
+    } = req.body;
+
+    if (group) {
+      const checkGroup = await Group.findById(group);
+      if (!checkGroup) {
+        return res.status(404).json({
+          message: "Group not found",
+          response: null,
+          error: "Group not found",
+        });
+      }
+    }
 
     const existingPlan = await Plan.findOne({
       name: new RegExp(`^${name}$`, "i"),
@@ -59,6 +81,7 @@ const createPlan = async (req, res) => {
       allowedStories,
       features,
       featured: featured || false,
+      group,
     });
 
     return res.status(201).json({
@@ -79,7 +102,9 @@ const getPlan = async (req, res) => {
   try {
     const { planId } = req.params;
 
-    const plan = await Plan.findById(planId);
+    const plan = await Plan.findById(planId)
+      .populate("group", "_id")
+      .lean({ virtuals: true });
     if (!plan) {
       return res.status(404).json({
         message: "Plan not found",
@@ -107,7 +132,27 @@ const getPlan = async (req, res) => {
 const editPlan = async (req, res) => {
   try {
     const { planId } = req.params;
-    const { name, type, price, billingCycle, allowedStories, features, featured } = req.body;
+    const {
+      name,
+      type,
+      price,
+      billingCycle,
+      allowedStories,
+      features,
+      featured,
+      group,
+    } = req.body;
+
+    if (group) {
+      const checkGroup = await Group.findById(group);
+      if (!checkGroup) {
+        return res.status(404).json({
+          message: "Group not found",
+          response: null,
+          error: "Group not found",
+        });
+      }
+    }
 
     const existingPlan = await Plan.findOne({
       _id: { $ne: planId },
@@ -131,6 +176,7 @@ const editPlan = async (req, res) => {
         allowedStories,
         features,
         featured: featured || false,
+        group,
       },
       { new: true }
     );

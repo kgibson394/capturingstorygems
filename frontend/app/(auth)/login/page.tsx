@@ -141,7 +141,7 @@ const Login = () => {
               href="/signup"
               className="font-semibold underline decoration-[#1D3557] hover:decoration-transparent"
             >
-              Create a Free Account
+              Create an Account
             </Link>
           </div>
         </div>

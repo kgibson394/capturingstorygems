@@ -15,6 +15,7 @@ type Plan = {
   price: number;
   billingCycle: string;
   allowedStories: number;
+  group: { _id: string; groupTag: string };
 };
 
 export default function Page() {
@@ -165,6 +166,9 @@ export default function Page() {
                     Stories
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Group
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -244,6 +248,11 @@ export default function Page() {
                           <div className="line-clamp-2 ps-6">
                             {plan.allowedStories}
                           </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 group-hover:text-blue-900 transition-colors">
+                          {plan.group?.groupTag ?? "—"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap flex items-center justify-start gap-1">
@@ -368,4 +377,4 @@ export default function Page() {
       )}
     </main>
   );
-};
+}

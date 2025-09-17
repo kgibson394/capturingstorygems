@@ -38,6 +38,28 @@ const getGroups = async (req, res) => {
   }
 };
 
+const getAllGroups = async (req, res) => {
+  try {
+    const groups = await Group.find({}).lean({ virtuals: true });
+
+    return res.status(200).json({
+      message: "All groups fetched successfully",
+      response: {
+        data: {
+          groups,
+        },
+      },
+      error: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: err.message,
+    });
+  }
+};
+
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({isPublic: false}).select("_id email").lean();
@@ -255,6 +277,7 @@ const deleteGroup = async (req, res) => {
     }
 
     await User.updateMany({ groupId: groupId }, { $unset: { groupId: "" } });
+    await Plan.updateMany({ group: groupId }, { $unset: { group: "" } });
     await Group.findByIdAndDelete(groupId);
 
     return res.status(200).json({
@@ -273,6 +296,7 @@ const deleteGroup = async (req, res) => {
 
 module.exports = {
   getGroups,
+  getAllGroups,
   getUsers,
   createGroup,
   addUsersToGroup,

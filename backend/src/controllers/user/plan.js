@@ -1,5 +1,6 @@
 const Stripe = require("stripe");
 const Plan = require("../../models/plan.js");
+const Group = require("../../models/group.js");
 const Payment = require("../../models/payment.js");
 const Subscription = require("../../models/subscription.js");
 const User = require("../../models/user.js");
@@ -11,7 +12,20 @@ const stripe = Stripe(configurations.stripeSecretKey);
 
 const getAllPlans = async (req, res) => {
   try {
-    const plans = await Plan.find().sort({ price: 1 });
+    const { id: userId } = req.decoded || {};
+
+    let plans;
+    if (!userId) {
+      plans = await Plan.find({ group: null }).sort({ price: 1 });
+    } else {
+      const userGroups = await Group.find({ users: userId }).select("_id");
+      const groupIds = userGroups.map((g) => g._id);
+
+      plans = await Plan.find({
+        $or: [{ group: null }, { group: { $in: groupIds } }],
+      }).sort({ price: 1 });
+    }
+
     if (plans.length === 0) {
       return res.status(404).json({
         message: "No plans found",
@@ -77,6 +91,21 @@ const createCheckout = async (req, res) => {
       response: null,
       error: "Plan not found",
     });
+  }
+
+  if (plan.group) {
+    const isMember = await Group.exists({
+      _id: plan.group,
+      users: userId,
+    });
+
+    if (!isMember) {
+      return res.status(403).json({
+        message: "You don't have access to this plan",
+        response: null,
+        error: "You don't have access to this plan",
+      });
+    }
   }
 
   const existingSubscription = await Subscription.findOne({

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   getGroups,
+  getAllGroups,
   getUsers,
   createGroup,
   addUsersToGroup,
@@ -13,6 +14,8 @@ const { verifyAdminToken } = require("../../middlewares/authMiddleware.js");
 const { bodyValidator } = require("../../middlewares/joi");
 
 router.get("/", verifyAdminToken, getGroups);
+
+router.get("/all", verifyAdminToken, getAllGroups);
 
 router.get("/users", verifyAdminToken, getUsers);
 
