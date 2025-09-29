@@ -19,7 +19,6 @@ const InlineWidget = dynamic(
 type Subscription = {
   name: string;
   expiryDate: string;
-  pauseSubscription: string | null;
   subscriptionFound: boolean;
 };
 
@@ -30,7 +29,6 @@ const Profile = () => {
   const [subscription, setSubscription] = useState<Subscription>({
     name: "",
     expiryDate: "",
-    pauseSubscription: null,
     subscriptionFound: false,
   });
   const [email, setEmail] = useState<string>("");
@@ -64,44 +62,11 @@ const Profile = () => {
         setSubscription({
           name: info.planName + " - " + info.planType,
           expiryDate: new Date(info.expiryDate).toISOString().slice(0, 10),
-          pauseSubscription: info.pauseSubscription,
           subscriptionFound: true,
         });
       }
     } catch {
       toast.error("Failed to fetch plans");
-    }
-  };
-
-  const pauseResumeSubscription = async (type: string) => {
-    let url;
-    if (type === "paused") {
-      url = `${serverBaseUrl}/user/plan/pause`;
-    } else {
-      url = `${serverBaseUrl}/user/plan/resume`;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        if (handleSessionExpiry(data.message, router)) return;
-        const msg = data.message || `Failed to ${type} the subscription`;
-        return toast.error(msg);
-      } else {
-        const msg = data.message;
-        toast.error(msg);
-        await fetchSubscription();
-      }
-    } catch {
-      toast.error(`Failed to ${type} the subscription`);
     }
   };
 
@@ -175,23 +140,6 @@ const Profile = () => {
               </>
             )}
           </form>
-
-          {subscription.subscriptionFound &&
-            (subscription.pauseSubscription ? (
-              <button
-                onClick={() => pauseResumeSubscription("resumed")}
-                className="bg-[#A8DADC] hover:bg-[#7FB8C4] text-[#457B9D] hover:text-[#2F4757] font-semibold w-full sm:w-48 py-3 rounded-full transition-colors"
-              >
-                Resume
-              </button>
-            ) : (
-              <button
-                onClick={() => pauseResumeSubscription("paused")}
-                className="bg-[#A8DADC] hover:bg-[#7FB8C4] text-[#457B9D] hover:text-[#2F4757] font-semibold w-full sm:w-48 py-3 rounded-full transition-colors"
-              >
-                Paused
-              </button>
-            ))}
         </div>
 
         <StoryImagePanel onJoin={() => setShowCalendly(true)} />

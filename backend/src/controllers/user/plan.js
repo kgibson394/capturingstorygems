@@ -56,7 +56,7 @@ const getSubscription = async (req, res) => {
     status: "paid",
   })
     .populate("planId", "name type")
-    .select("planId expiryDate pauseStartDate")
+    .select("planId expiryDate")
     .exec();
 
   if (!subscription) {
@@ -71,7 +71,6 @@ const getSubscription = async (req, res) => {
     planName: subscription.planId?.name,
     planType: subscription.planId?.type,
     expiryDate: subscription.expiryDate,
-    pauseSubscription: subscription?.pauseStartDate || null,
   };
   return res.status(200).json({
     message: "Subscription retrieved successfully",
@@ -289,93 +288,9 @@ const checkoutComplete = async (req, res) => {
   }
 };
 
-const pauseSubscription = async (req, res) => {
-  const { id: userId } = req.decoded;
-
-  try {
-    const subscription = await Subscription.findOne({ userId, status: "paid" });
-    if (!subscription) {
-      return res.status(404).json({
-        message: "Subscription not found",
-        response: null,
-        error: "Subscription not found",
-      });
-    }
-    if (subscription.pauseStartDate) {
-      return res.status(400).json({
-        message: "Subscription is already paused",
-        response: null,
-        error: "Subscription is already paused",
-      });
-    }
-
-    subscription.pauseStartDate = new Date();
-    await subscription.save();
-
-    return res.status(200).json({
-      message: "Subscription paused successfully",
-      response: null,
-      error: null,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-      response: null,
-      error: error,
-    });
-  }
-};
-
-const resumeSubscription = async (req, res) => {
-  const { id: userId } = req.decoded;
-
-  try {
-    const subscription = await Subscription.findOne({ userId, status: "paid" });
-    if (!subscription) {
-      return res.status(404).json({
-        message: "Subscription not found",
-        response: null,
-        error: "Subscription not found",
-      });
-    }
-    if (!subscription.pauseStartDate) {
-      return res.status(400).json({
-        message: "Subscription is not paused",
-        response: null,
-        error: "Subscription is not paused",
-      });
-    }
-
-    const now = new Date();
-    const pausedMilliseconds = now - new Date(subscription.pauseStartDate);
-
-    const newExpiry = new Date(
-      subscription.expiryDate.getTime() + pausedMilliseconds
-    );
-    subscription.expiryDate = newExpiry;
-    subscription.pauseStartDate = null;
-
-    await subscription.save();
-
-    return res.status(200).json({
-      message: "Subscription resumed successfully",
-      response: null,
-      error: null,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-      response: null,
-      error: error,
-    });
-  }
-};
-
 module.exports = {
   getAllPlans,
   getSubscription,
   createCheckout,
   checkoutComplete,
-  pauseSubscription,
-  resumeSubscription,
 };

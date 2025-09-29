@@ -25,15 +25,6 @@ const createStory = async (req, res) => {
           error: "No active subscription",
         });
       }
-      if (subscription.pauseStartDate) {
-        return res.status(403).json({
-          message:
-            "Your subscription is currently paused. Please resume your subscription to create a story",
-          response: null,
-          error:
-            "Your subscription is currently paused. Please resume your subscription to create a story",
-        });
-      }
       if (subscription.storiesCreated >= subscription.storiesAllowed) {
         return res.status(403).json({
           message:

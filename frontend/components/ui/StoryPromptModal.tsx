@@ -224,9 +224,8 @@ export default function StoryPromptModal({
 
             {/* Quote */}
             <div className="mt-6 p-3 bg-[#F1FAEE] border border-[#A8DADC] rounded-xl">
-              <p className="text-center text-[#5A9AAF] italic text-xs">
-                &quot;The universe is made of stories, not atoms.&quot; – Muriel
-                Rukeyser
+              <p className="text-center text-[#5A9AAF] font-bold text-xs">
+                Please wait: Clarity questions can take 2 minutes to create
               </p>
             </div>
           </div>

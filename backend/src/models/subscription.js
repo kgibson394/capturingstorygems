@@ -37,10 +37,6 @@ const subscriptionSchema = new Schema(
       type: Date,
       required: true,
     },
-    pauseStartDate: {
-      type: Date,
-      default: null,
-    },
   },
   { timestamps: true }
 );
