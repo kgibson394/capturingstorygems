@@ -40,7 +40,7 @@ const getPlans = async (req, res) => {
 
 const createPlan = async (req, res) => {
   try {
-    const {
+    let {
       name,
       type,
       price,
@@ -50,6 +50,9 @@ const createPlan = async (req, res) => {
       featured,
       group,
     } = req.body;
+    if (!group) {
+      group = null;
+    }
 
     if (group) {
       const checkGroup = await Group.findById(group);

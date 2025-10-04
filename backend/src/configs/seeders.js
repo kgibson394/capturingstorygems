@@ -1,44 +1,8 @@
-const Plan = require("../models/plan");
 const Prompt = require("../models/prompt");
 const Admin = require("../models/admin");
 
 const runSeeder = async () => {
   try {
-    const planCount = await Plan.countDocuments();
-    if (planCount === 0) {
-      await Plan.insertMany([
-        {
-          name: "Plan A",
-          type: "DIY",
-          price: 20,
-          billingCycle: "monthly",
-          features: ["75 Free Stories"],
-        },
-        {
-          name: "Plan B",
-          type: "DWY",
-          price: 50,
-          billingCycle: "monthly",
-          features: ["75 Free Stories", "12 week workshop"],
-          featured: true,
-        },
-        {
-          name: "Plan C",
-          type: "DFY",
-          price: 80,
-          billingCycle: "monthly",
-          features: [
-            "75 Free Stories",
-            "12 week workshop",
-            "Complete guide in story publishing",
-          ],
-        },
-      ]);
-      console.log("Plans seeded successfully!");
-    } else {
-      console.log("Plans already exist, skipping seeding");
-    }
-
     const promptCount = await Prompt.countDocuments();
     if (promptCount === 0) {
       await Prompt.insertMany([
