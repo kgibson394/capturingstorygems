@@ -194,7 +194,7 @@ const Story = () => {
   };
 
   const handleDelete = async (storyId: string) => {
-    if (!currentStoryPage || !isPublic) return;
+    if (!currentStoryPage) return;
     const index = storyPages.findIndex((s) => s._id === storyId);
     if (index === -1) return;
     setLoading("Deleting your story");
@@ -332,7 +332,6 @@ const Story = () => {
                       <Printer className="w-4 h-4" />
                       Print
                     </button>
-                    {isPublic && (
                       <button
                         onClick={() => {
                           handleDelete(currentStoryPage?._id);
@@ -342,7 +341,6 @@ const Story = () => {
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </button>
-                    )}
                   </div>
                 </div>
                 <div className="lg:hidden relative mb-6">

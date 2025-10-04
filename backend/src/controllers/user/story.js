@@ -348,6 +348,19 @@ const deleteStory = async (req, res) => {
     }
     await Story.findByIdAndDelete(storyId);
 
+    const user = await User.findById(id).select("isPublic");
+    if (!user?.isPublic) {
+      const subscription = await Subscription.findOne({ userId: id }).select(
+        "storiesCreated"
+      );
+      if (subscription && subscription.storiesCreated > 0) {
+        await Subscription.findByIdAndUpdate(
+          subscription._id,
+          { $inc: { storiesCreated: -1 } }
+        );
+      }
+    }
+
     return res.status(200).json({
       message: "Story deleted successfully",
       response: null,
