@@ -101,7 +101,8 @@ const Profile = () => {
               </h1>
               {subscription.subscriptionFound ? (
                 <p className="text-[#457B9D] text-sm">
-                  *All available stories expire in 365 days if not used
+                  *For Privacy, all stories are removed at end of subscription.
+                  Please Printout, Copy and Save Stories to your computer
                 </p>
               ) : (
                 <>
