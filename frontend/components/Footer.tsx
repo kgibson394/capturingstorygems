@@ -1,14 +1,41 @@
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { FaFacebookF, FaTwitter, FaYoutube, FaInstagram } from "react-icons/fa";
 
 export default function Footer() {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleContactClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+
+    if (pathname !== "/landing-page") {
+      router.push("/landing-page");
+      setTimeout(() => {
+        const section = document.getElementById("contact");
+        if (section) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          setTimeout(() => {
+            section.scrollIntoView({ behavior: "smooth" });
+          }, 400);
+        }
+      }, 600);
+    } else {
+      const section = document.getElementById("contact");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <footer className="bg-[#457B9D] py-10 md:py-15 px-6 sm:px-8">
       <div className="max-w-5xl mx-auto text-center">
         {/* Description */}
         <div className="mb-12 max-w-2xl mx-auto">
           <p className="text-white/90 leading-relaxed text-xl sm:text-2xl font-[Cormorant_Garamond] italic">
-            Every memory is a piece of who you are. We&apos;re here to help you (capture) it into something that lasts forever.
+            Every memory is a piece of who you are. We&apos;re here to help you
+            (capture) it into something that lasts forever.
           </p>
         </div>
 
@@ -35,11 +62,27 @@ export default function Footer() {
 
         {/* Footer Links (Optional) */}
         <div className="mb-10 hidden sm:flex justify-center gap-6 text-white/80 text-sm tracking-wide">
-          <Link href="#" className="hover:underline hover:text-white">Privacy Policy</Link>
+          <Link
+            href="/privacy-policy"
+            className="hover:underline hover:text-white"
+          >
+            Privacy Policy
+          </Link>
           <span>|</span>
-          <Link href="#" className="hover:underline hover:text-white">Terms of Service</Link>
+          <Link
+            href="/terms-of-service"
+            className="hover:underline hover:text-white"
+          >
+            Terms of Service
+          </Link>
           <span>|</span>
-          <Link href="#" className="hover:underline hover:text-white">Contact</Link>
+          <a
+            href="/landing-page#contact"
+            onClick={handleContactClick}
+            className="hover:underline hover:text-white"
+          >
+            Contact
+          </a>
         </div>
 
         {/* Copyright */}

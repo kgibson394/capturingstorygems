@@ -26,10 +26,15 @@
   }
 }
 
+* {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;  /* Use Inter as the default font for body */
+  scroll-behavior: smooth;
 }
 
 /* You can apply Cormorant Garamond for specific elements, like the heading */

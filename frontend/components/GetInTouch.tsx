@@ -70,7 +70,7 @@ export default function GetInTouch() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row">
+    <div className="flex flex-col lg:flex-row" id="contact">
       {/* Left side - Form */}
       <div className="flex-1 bg-[#A8DADC]  px-8 py-12 lg:px-12 lg:py-20 flex items-center justify-center">
         <div className="w-full max-w-lg mx-auto ">

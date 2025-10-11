@@ -7,14 +7,7 @@ import ActionRequiredModal from "@/components/ui/ActionRequiredModal";
 import { ProtectedUserRoute } from "@/utils/RouteProtection";
 import { handleSessionExpiry } from "@/utils/handleSessionExpiry";
 import { toast } from "sonner";
-import dynamic from "next/dynamic";
 const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
-const calendlyUrl = process.env.NEXT_PUBLIC_CALENDLY_URL;
-
-const InlineWidget = dynamic(
-  () => import("react-calendly").then((mod) => mod.InlineWidget),
-  { ssr: false }
-);
 
 type Subscription = {
   name: string;
@@ -25,7 +18,6 @@ type Subscription = {
 const Profile = () => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const [showCalendly, setShowCalendly] = useState(false);
   const [subscription, setSubscription] = useState<Subscription>({
     name: "",
     expiryDate: "",
@@ -143,31 +135,11 @@ const Profile = () => {
           </form>
         </div>
 
-        <StoryImagePanel onJoin={() => setShowCalendly(true)} />
+        <StoryImagePanel />
 
         {/* Modal */}
         {showModal && (
           <ActionRequiredModal onClose={() => setShowModal(false)} />
-        )}
-
-        {showCalendly && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setShowCalendly(false)}
-          >
-            <div
-              className="bg-white w-full max-w-3xl rounded-2xl shadow-lg relative p-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-
-              <InlineWidget
-                url={`${calendlyUrl}`}
-                styles={{
-                  height: "600px",
-                }}
-              />
-            </div>
-          </div>
         )}
       </div>
     </ProtectedUserRoute>
