@@ -43,7 +43,6 @@ const Story = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [disabled, setDisabled] = useState(false);
-  const [isPublic, setIsPublic] = useState<boolean>(false);
   const [editedStory, setEditedStory] = useState("");
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [storyPages, setStoryPages] = useState<Story[]>([]);
@@ -142,9 +141,6 @@ const Story = () => {
       await loadStoryPages();
     };
     getStoryPages();
-    const storedUser = localStorage.getItem("user");
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    setIsPublic(user?.public === true);
   }, []);
 
   useEffect(() => {
@@ -238,14 +234,14 @@ const Story = () => {
 
   return (
     <PrivateRoute>
-      <div className="">
+      <div className="bg-white">
         {/* Hero Section */}
         <div
-          className="relative w-full py-15 md:h-screen bg-cover bg-center"
+          className="relative w-full py-15 md:h-[50vh] bg-cover bg-center"
           style={{ backgroundImage: 'url("/assets/story-homepage.jpg")' }}
         >
           <div className="absolute inset-0 bg-black opacity-20"></div>
-          <div className="relative px-4 py-12 sm:py-16 lg:py-20">
+          <div className="relative px-4">
             <div className="max-w-6xl text-white mx-auto text-center">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-8xl font-serif mb-6 leading-tight">
                 Capturing Story Gems
@@ -391,7 +387,6 @@ const Story = () => {
                             <Printer className="w-4 h-4" />
                             Print
                           </button>
-                          {isPublic && (
                             <button
                               onClick={() => {
                                 handleDelete(currentStoryPage?._id);
@@ -402,7 +397,6 @@ const Story = () => {
                               <Trash2 className="w-4 h-4" />
                               Delete
                             </button>
-                          )}
                         </div>
                       </div>
                     </div>
