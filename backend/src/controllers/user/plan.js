@@ -10,6 +10,14 @@ const { checkoutSuccessEmail } = require("../../data/emails.js");
 
 const stripe = Stripe(configurations.stripeSecretKey);
 
+const _toNewYorkDate = (dateInput) => {
+  const date = new Date(dateInput);
+  const newYorkTime = new Date(
+    date.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+  return newYorkTime;
+};
+
 const getAllPlans = async (req, res) => {
   try {
     const { id: userId } = req.decoded || {};
@@ -126,7 +134,7 @@ const createCheckout = async (req, res) => {
   const amount = plan.price;
   const billingCycle = plan.billingCycle;
 
-  const startDate = new Date();
+  const startDate = _toNewYorkDate(new Date());
   startDate.setHours(0, 0, 0, 0);
 
   let expiryDate = new Date(startDate);

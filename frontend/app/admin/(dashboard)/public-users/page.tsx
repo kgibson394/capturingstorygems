@@ -202,16 +202,18 @@ export default function UserManagement() {
   };
 
   const openEdit = (user: User) => {
+    const getISODate = (value: string | Date | null | undefined) => {
+      if (!value) return "";
+      const iso = value instanceof Date ? value.toISOString() : value;
+      return iso.split("T")[0];
+    };
+
     setForm({
       email: "",
       password: "",
       confirmPassword: "",
-      passwordExpiryDate: new Date(user.passwordExpiryDate)
-        .toISOString()
-        .split("T")[0],
-      storyExpiryDate: new Date(user.storyExpiryDate)
-        .toISOString()
-        .split("T")[0],
+      passwordExpiryDate: getISODate(user.passwordExpiryDate),
+      storyExpiryDate: getISODate(user.storyExpiryDate),
     });
     setErrors({
       email: "",
@@ -333,6 +335,30 @@ export default function UserManagement() {
     }
   };
 
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return "—";
+    const isoString =
+      typeof dateString === "string" ? dateString : dateString.toISOString();
+
+    const datePart = isoString.split("T")[0];
+    const [year, month, day] = datePart.split("-");
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+  };
+
   return (
     <main className="flex-1 p-3 md:p-4 lg:p-8 bg-gray-50 min-h-screen overflow-x-auto">
       <div className="max-w-[1440px] mx-auto w-full">
@@ -410,14 +436,12 @@ export default function UserManagement() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 group-hover:text-blue-900 transition-colors">
-                          {new Date(user.storyExpiryDate).toLocaleDateString()}
+                          {formatDate(user.storyExpiryDate)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900 group-hover:text-blue-900 transition-colors">
-                          {new Date(
-                            user.passwordExpiryDate
-                          ).toLocaleDateString()}
+                          {formatDate(user.passwordExpiryDate)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap flex items-center justify-start gap-1">

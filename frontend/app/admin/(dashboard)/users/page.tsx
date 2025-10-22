@@ -12,10 +12,11 @@ const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 type User = {
   _id: string;
   email: string;
-  plan: string;
   emailVerified: boolean;
   status: string;
   planName: string;
+  storiesCount: number;
+  startDate: Date;
   expiryDate: Date;
 };
 
@@ -48,6 +49,16 @@ export default function Page() {
       }, 300);
     };
   }, [pageSize])();
+
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date);
+  };
 
   const loadUsers = async (
     pg: number = page,
@@ -296,6 +307,12 @@ export default function Page() {
                     Plan
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Plan Start Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stories Count
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -347,6 +364,12 @@ export default function Page() {
                         planName={user.planName}
                         expiryDate={user.expiryDate}
                       />
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-center">
+                        {formatDate(user.startDate)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-center">
+                        {user.storiesCount}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${

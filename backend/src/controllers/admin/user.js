@@ -24,29 +24,55 @@ const getUsers = async (req, res) => {
     const usersCount = await User.countDocuments(query);
     const totalPages = Math.ceil(usersCount / pageSize);
 
-    const usersWithPlanInfo = await User.find(query)
-      .sort({ createdAt: sortOrder })
-      .skip(offset)
-      .limit(pageSize)
-      .populate({
-        path: "subscription",
-        select: "planId expiryDate",
-        populate: {
-          path: "planId",
-          model: "Plan",
-          select: "name -_id",
+    const users = await User.aggregate([
+      { $match: query },
+      { $sort: { createdAt: sortOrder } },
+      { $skip: offset },
+      { $limit: pageSize },
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "_id",
+          foreignField: "userId",
+          as: "subscription",
         },
-      })
-      .lean({ virtuals: true });
-
-    const users = usersWithPlanInfo.map((u) => {
-      const { subscription, ...userFields } = u;
-      return {
-        ...userFields,
-        planName: subscription?.planId?.name || null,
-        expiryDate: subscription?.expiryDate || null,
-      };
-    });
+      },
+      { $unwind: { path: "$subscription", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "plans",
+          localField: "subscription.planId",
+          foreignField: "_id",
+          as: "plan",
+        },
+      },
+      { $unwind: { path: "$plan", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "stories",
+          localField: "_id",
+          foreignField: "userId",
+          as: "stories",
+        },
+      },
+      {
+        $addFields: {
+          storiesCount: { $size: "$stories" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          emailVerified: 1,
+          status: 1,
+          planName: "$plan.name",
+          startDate: "$subscription.startDate",
+          expiryDate: "$subscription.expiryDate",
+          storiesCount: 1,
+        },
+      },
+    ]);
 
     return res.status(200).json({
       message: "Users returned successfully",
