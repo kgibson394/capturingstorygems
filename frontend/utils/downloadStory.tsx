@@ -115,7 +115,8 @@ export const createStoryPDF = async (story: Story): Promise<PDFDocument> => {
   };
 
   for (const paragraph of story.enhanced_story.split(/\n\s*\n/).filter((p) => p.trim())) {
-    const lines = wrapText(paragraph.trim(), width - margin * 2, textSize, fontNormal);
+    const cleanParagraph = paragraph.replace(/\r?\n/g, ' ').trim();
+    const lines = wrapText(cleanParagraph, width - margin * 2, textSize, fontNormal);
     for (const ln of lines) {
       if (y < margin) {
         page = pdfDoc.addPage();
