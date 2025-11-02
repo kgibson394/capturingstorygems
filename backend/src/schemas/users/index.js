@@ -13,14 +13,22 @@ module.exports = {
         "string.empty": "Email is not allowed to be empty",
       }),
     password: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
+      .custom((value, helpers) => {
+        if (/\s/.test(value)) {
+          return helpers.error("string.noSpaces");
+        }
+        return value;
+      })
       .pattern(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
         "strong password"
       )
       .messages({
+        "string.noSpaces": "Password must not contain spaces",
         "string.pattern.name":
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
@@ -50,14 +58,22 @@ module.exports = {
         "string.empty": "Email is not allowed to be empty",
       }),
     password: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
+      .custom((value, helpers) => {
+        if (/\s/.test(value)) {
+          return helpers.error("string.noSpaces");
+        }
+        return value;
+      })
       .pattern(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
         "strong password"
       )
       .messages({
+        "string.noSpaces": "Password must not contain spaces",
         "string.pattern.name":
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
@@ -155,16 +171,11 @@ module.exports = {
         "string.empty": "Email is not allowed to be empty",
       }),
     password: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
-      .pattern(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
-        "strong password"
-      )
       .messages({
-        "string.pattern.name":
-          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
         "string.max": "Password must be at most 30 characters long",
         "any.required": "Password is required",
@@ -192,14 +203,22 @@ module.exports = {
         "string.empty": "Code cannot be empty",
       }),
     password: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
+      .custom((value, helpers) => {
+        if (/\s/.test(value)) {
+          return helpers.error("string.noSpaces");
+        }
+        return value;
+      })
       .pattern(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
         "strong password"
       )
       .messages({
+        "string.noSpaces": "Password must not contain spaces",
         "string.pattern.name":
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
@@ -218,14 +237,22 @@ module.exports = {
 
   passwordUpdate: Joi.object().keys({
     currentPassword: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
+      .custom((value, helpers) => {
+        if (/\s/.test(value)) {
+          return helpers.error("string.noSpaces");
+        }
+        return value;
+      })
       .pattern(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
         "strong password"
       )
       .messages({
+        "string.noSpaces": "Password must not contain spaces",
         "string.pattern.name":
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
@@ -234,22 +261,30 @@ module.exports = {
         "string.empty": "Password is not allowed to be empty",
       }),
     newPassword: Joi.string()
+      .trim()
       .required()
       .min(6)
       .max(30)
+      .custom((value, helpers) => {
+        if (/\s/.test(value)) {
+          return helpers.error("string.noSpaces");
+        }
+        return value;
+      })
       .pattern(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#])[A-Za-z\d@$!%*?&.#]{6,30}$/,
         "strong password"
       )
       .invalid(Joi.ref("currentPassword"))
       .messages({
+        "string.noSpaces": "Password must not contain spaces",
         "string.pattern.name":
           "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (allowed: @$!%*?&.#)",
         "string.min": "Password must be at least 6 characters long",
         "string.max": "Password must be at most 30 characters long",
         "any.required": "Password is required",
         "string.empty": "Password is not allowed to be empty",
-        "any.invalid": "Password must be different from the old password",
+        "any.invalid": "New password must be different from the old password",
       }),
     confirmPassword: Joi.string()
       .trim()
