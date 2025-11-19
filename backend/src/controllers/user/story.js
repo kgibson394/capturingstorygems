@@ -267,7 +267,7 @@ const getUserStories = async (req, res) => {
 
     const stories = await Story.find({ userId, enhanced_story: { $ne: null } })
       .select("story_title read_time genre enhanced_story user_story")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .lean();
 
     return res.status(200).json({

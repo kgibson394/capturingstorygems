@@ -128,6 +128,8 @@ const Story = () => {
       }
 
       setStoryPages(data?.response?.data);
+      const totalPages = Number(data?.response?.data?.length);
+      setCurrentPage( totalPages > 0 ? totalPages - 1  : 0);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch stories");
