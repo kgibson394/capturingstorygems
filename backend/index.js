@@ -20,21 +20,28 @@ const allowedOrigins = [
   "https://www.capturingstorygems.com",
   "https://ai-story-frontend-ten.vercel.app",
   "https://ai-story-fe.vercel.app",
-  "https://ai-story-front.vercel.app"
+  "https://ai-story-front.vercel.app",
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// CORS must be applied before routes so OPTIONS preflights get the headers.
+// Also, for credentialed requests, the response must include a specific origin,
+// not "*", so we reflect only if it's allow-listed.
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow non-browser callers and same-origin (no Origin header)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+// Ensure preflight requests always get a CORS response.
+app.options("*", cors(corsOptions));
 
 
 // ✅ DB connect middleware (runs once per cold start, cached after)
@@ -59,6 +66,7 @@ const { checkoutComplete } = require("./src/controllers/user/plan");
 
 app.post(
   `/api/${version}/user/plan/checkout`,
+  // Stripe webhook signature verification requires the raw body.
   express.raw({ type: "application/json" }),
   checkoutComplete
 );
