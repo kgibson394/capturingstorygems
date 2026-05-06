@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./index.js",
-    "build": "react-scripts build",
+    "build": "echo 'No build step required for this project' && exit 0",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -14,8 +14,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
@@ -24,11 +27,16 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.2",
+    "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.4",
     "openai": "^5.10.2",
     "path": "^0.12.7",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^2.4.5",
+    "puppeteer": "^24.35.0",
+    "qrcode": "^1.5.4",
     "stripe": "^18.3.0"
   }
 }

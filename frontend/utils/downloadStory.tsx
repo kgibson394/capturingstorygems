@@ -7,6 +7,8 @@ interface Story {
   read_time: string;
   genre: string;
   enhanced_story: string;
+  heroImageUrl?: string | null;
+  heroImageAlignment?: "left" | "center" | "right" | null;
 }
 
 export const createStoryPDF = async (story: Story): Promise<PDFDocument> => {
@@ -21,121 +23,241 @@ export const createStoryPDF = async (story: Story): Promise<PDFDocument> => {
 
   const fontNormal: PDFFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
   const fontBold: PDFFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-  const fontItalic: PDFFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
-
-  const drawBorder = (p: PDFPage) => {
-    const b = 15;
-    const specs: Array<[number, number, number, number, ReturnType<typeof rgb>, number]> = [
-      [b, b, width - b * 2, height - b * 2, rgb(0.1, 0.1, 0.3), 3],
-      [b + 8, b + 8, width - (b + 8) * 2, height - (b + 8) * 2, rgb(0.3, 0.2, 0.5), 1.5],
-      [b + 15, b + 15, width - (b + 15) * 2, height - (b + 15) * 2, rgb(0.6, 0.5, 0.7), 0.5],
-    ];
-    specs.forEach(([x, y, w, h, color, borderWidth]) => {
-      p.drawRectangle({ x, y, width: w, height: h, borderColor: color, borderWidth });
-    });
-  };
-  drawBorder(page);
 
   let y = height - margin;
 
-  y -= 20;
-  page.drawText(story.story_title, {
-    x: margin,
-    y,
-    size: titleSize,
-    font: fontBold,
-    color: rgb(0.1, 0.2, 0.6),
-    maxWidth: width - margin * 2,
-  });
-  y -= titleSize + 10;
+  // Store image rect for wrapping decisions
+  let heroRect: { x: number; y: number; width: number; height: number } | null = null;
+  const isSideAligned = story.heroImageAlignment === 'left' || story.heroImageAlignment === 'right';
+  const availableW = width - margin * 2;
+  const sectionSpacing = 24; // consistent spacing between image, title and body
 
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 1,
-    color: rgb(0.4, 0.4, 0.7),
-  });
-  y -= 20;
+  // Track the page where the hero image is drawn
+  let imagePageRef: PDFPage | null = null;
 
-  page.drawText('Genre:', {
-    x: margin,
-    y,
-    size: textSize,
-    font: fontBold,
-    color: rgb(0.4, 0.4, 0.4),
-  });
-  page.drawText(story.genre, {
-    x: margin + 45,
-    y,
-    size: textSize,
-    font: fontItalic,
-    color: rgb(0.2, 0.2, 0.2),
-  });
-  y -= textSize + 5;
+  // Draw hero image and/or title depending on alignment
+  if (story.heroImageUrl) {
+    // If image is side-aligned, draw the title first, then the image below it
+    if (isSideAligned) {
+      // Draw title at the top before embedding image so text can wrap around image below
+      drawTitle();
+      // Save the y position just below the title (top of the body area)
+      const titleBottom = y;
 
-  page.drawText('Read Time:', {
-    x: margin,
-    y,
-    size: textSize,
-    font: fontBold,
-    color: rgb(0.4, 0.4, 0.4),
-  });
-  page.drawText(story.read_time, {
-    x: margin + 65,
-    y,
-    size: textSize,
-    font: fontItalic,
-    color: rgb(0.2, 0.2, 0.2),
-  });
-  y -= textSize + 10;
+      try {
+        const resp = await fetch(story.heroImageUrl);
+        const contentType = resp.headers.get('content-type') || '';
+        const bytes = await resp.arrayBuffer();
+        let embeddedImage: any = null;
+        if (contentType.includes('png')) {
+          embeddedImage = await pdfDoc.embedPng(bytes);
+        } else {
+          embeddedImage = await pdfDoc.embedJpg(bytes);
+        }
 
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: width - margin, y },
-    thickness: 1,
-    color: rgb(0.4, 0.4, 0.7),
-  });
-  y -= 40;
+        const imgDims = embeddedImage.scale(1);
+        const availableH = height - margin * 2;
 
-  const wrapText = (text: string, maxW: number, size: number, font: PDFFont) => {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let line = '';
-    for (const w of words) {
-      const test = line ? `${line} ${w}` : w;
-      if (font.widthOfTextAtSize(test, size) <= maxW) {
-        line = test;
-      } else {
-        if (line) lines.push(line);
-        line = w;
+        // Side images use ~40% of width and a taller max height
+        const targetW = availableW * 0.4;
+        const targetH = availableH * 0.6;
+
+        const scaleW = targetW / imgDims.width;
+        const scaleH = targetH / imgDims.height;
+        const scale = Math.min(1, scaleW, scaleH);
+
+        const drawW = imgDims.width * scale;
+        const drawH = imgDims.height * scale;
+
+        let imgX = margin;
+        if (story.heroImageAlignment === 'right') {
+          imgX = width - margin - drawW;
+        }
+
+        // Place image below the title with a consistent gap, and start body text at the image top
+        const imageY = titleBottom - sectionSpacing - drawH;
+        page.drawImage(embeddedImage, {
+          x: imgX,
+          y: imageY,
+          width: drawW,
+          height: drawH,
+        });
+
+        heroRect = { x: imgX, y: imageY, width: drawW, height: drawH };
+        imagePageRef = page;
+
+        // Start body text at the top of the image minus a small offset so first line baseline is beside the image
+        const bodyStartY = heroRect.y + heroRect.height - (textSize * lineHeight * 0.3);
+        y = bodyStartY;
+      } catch (e) {
+        console.warn('Failed to embed hero image for PDF:', e);
+      }
+    } else {
+      // Center-aligned (or unspecified) images: draw image first, then title below it
+      try {
+        const resp = await fetch(story.heroImageUrl);
+        const contentType = resp.headers.get('content-type') || '';
+        const bytes = await resp.arrayBuffer();
+        let embeddedImage: any = null;
+        if (contentType.includes('png')) {
+          embeddedImage = await pdfDoc.embedPng(bytes);
+        } else {
+          embeddedImage = await pdfDoc.embedJpg(bytes);
+        }
+
+        const imgDims = embeddedImage.scale(1);
+        const availableH = height - margin * 2;
+
+        const targetW = availableW;
+        const targetH = availableH * 0.35;
+
+        const scaleW = targetW / imgDims.width;
+        const scaleH = targetH / imgDims.height;
+        const scale = Math.min(1, scaleW, scaleH);
+
+        const drawW = imgDims.width * scale;
+        const drawH = imgDims.height * scale;
+
+        let imgX = margin + (availableW - drawW) / 2;
+        if (story.heroImageAlignment === 'right') {
+          imgX = width - margin - drawW;
+        }
+
+        const imageY = y - drawH;
+        page.drawImage(embeddedImage, {
+          x: imgX,
+          y: imageY,
+          width: drawW,
+          height: drawH,
+        });
+
+        heroRect = { x: imgX, y: imageY, width: drawW, height: drawH };
+        imagePageRef = page;
+
+        // Place the title below the image
+        y = imageY - sectionSpacing;
+        drawTitle();
+        y -= sectionSpacing;
+      } catch (e) {
+        console.warn('Failed to embed hero image for PDF:', e);
       }
     }
-    if (line) lines.push(line);
-    return lines;
+  } else {
+    // No image -> just draw title at the top
+    drawTitle();
+    y -= sectionSpacing;
+  }
+
+  // Helper to check if current y overlaps with hero image (only on the image's page)
+  const doesOverlapImage = (currentY: number, lineH: number, currentPage: PDFPage): boolean => {
+    if (!heroRect || !isSideAligned || !imagePageRef || currentPage !== imagePageRef) return false;
+    // Text baseline is at currentY, but text visually extends above (ascenders) and below (descenders)
+    // Add buffer to prevent edge-case overlaps
+    const buffer = lineH * 0.4;
+    const lineVisualTop = currentY + buffer; // Account for ascenders above baseline
+    const lineVisualBottom = currentY - lineH;
+    const imgTop = heroRect.y + heroRect.height;
+    const imgBottom = heroRect.y;
+    // Check if line's visual extent overlaps with image
+    return !(lineVisualBottom >= imgTop || lineVisualTop <= imgBottom);
   };
 
-  for (const paragraph of story.enhanced_story.split(/\n\s*\n/).filter((p) => p.trim())) {
-    const cleanParagraph = paragraph.replace(/\r?\n/g, ' ').trim();
-    const lines = wrapText(cleanParagraph, width - margin * 2, textSize, fontNormal);
-    for (const ln of lines) {
+  // Helper to get text area considering image overlap
+  const getTextArea = (currentY: number, lineH: number, currentPage: PDFPage): { xPos: number; maxW: number } => {
+    const gap = 12;
+    if (doesOverlapImage(currentY, lineH, currentPage) && heroRect) {
+      if (story.heroImageAlignment === 'left') {
+        const xPos = heroRect.x + heroRect.width + gap;
+        return { xPos, maxW: width - margin - xPos };
+      } else {
+        return { xPos: margin, maxW: heroRect.x - margin - gap };
+      }
+    }
+    return { xPos: margin, maxW: width - margin * 2 };
+  };
+
+  // Draw title centered (full-width)
+  function drawTitle() {
+    const words = story.story_title.split(' ');
+    let line = '';
+    const lineHeightPx = titleSize * 1.2;
+
+    const pushLine = (ln: string) => {
+      const textWidth = fontBold.widthOfTextAtSize(ln, titleSize);
+      const centeredX = margin + (availableW - textWidth) / 2;
+      page.drawText(ln, {
+        x: centeredX,
+        y,
+        size: titleSize,
+        font: fontBold,
+        color: rgb(0.1, 0.2, 0.4),
+      });
+      y -= lineHeightPx;
+    };
+
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      if (fontBold.widthOfTextAtSize(test, titleSize) <= availableW) {
+        line = test;
+      } else {
+        if (line) pushLine(line);
+        line = w;
+      }
       if (y < margin) {
         page = pdfDoc.addPage();
-        drawBorder(page);
         y = height - margin;
       }
+    }
+    if (line) pushLine(line);
+  }
+
+  
+
+  // Draw body paragraphs with wrapping that respects side images
+  const drawParagraph = (raw: string) => {
+    const cleanParagraph = raw.replace(/\r?\n/g, ' ').trim();
+    const words = cleanParagraph.split(' ');
+    let line = '';
+    const lineHeightPx = textSize * lineHeight;
+
+    const pushLine = (ln: string) => {
+      const { xPos, maxW } = getTextArea(y, lineHeightPx, page);
       page.drawText(ln, {
-        x: margin,
+        x: xPos,
         y,
         size: textSize,
         font: fontNormal,
-        color: rgb(0, 0, 0),
-        maxWidth: width - margin * 2,
+        color: rgb(0.1, 0.1, 0.1),
+        maxWidth: maxW,
       });
-      y -= textSize * lineHeight;
+      y -= lineHeightPx;
+    };
+
+    for (const w of words) {
+      const test = line ? `${line} ${w}` : w;
+      const { maxW: curMaxW } = getTextArea(y, lineHeightPx, page);
+
+      if (fontNormal.widthOfTextAtSize(test, textSize) <= curMaxW) {
+        line = test;
+      } else {
+        if (line) pushLine(line);
+        line = w;
+      }
+
+      if (y < margin) {
+        page = pdfDoc.addPage();
+        y = height - margin;
+      }
     }
-    y -= textSize * 0.5;
+    if (line) pushLine(line);
+    y -= textSize * 0.6;
+  };
+
+  for (const paragraph of story.enhanced_story.split(/\n\s*\n/).filter((p) => p.trim())) {
+    drawParagraph(paragraph);
   }
 
+  // Add page numbers
   pdfDoc.getPages().forEach((p, idx) => {
     const num = `${idx + 1}`;
     p.drawText(num, {
@@ -161,7 +283,7 @@ export const handlePrintPDF = async (story: Story) => {
   const pdfBytes = await pdfDoc.save();
   const pdfBytesCopy = new Uint8Array(pdfBytes);
   const blob = new Blob([pdfBytesCopy], { type: 'application/pdf' });
-  const blobUrl = URL.createObjectURL(blob);
+const blobUrl = URL.createObjectURL(blob);
 
   const printWindow = window.open(blobUrl);
 

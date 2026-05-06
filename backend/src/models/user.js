@@ -58,6 +58,24 @@ const userSchema = new Schema(
       },
       default: null,
     },
+    totalDiscount: {
+      type: Number,
+      default: 0,
+    },
+    // One-time free trial window for story creation (non-public users).
+    // Set at account creation; never reset.
+    trialUsed: {
+      type: Boolean,
+      default: false,
+    },
+    trialStartDate: {
+      type: Date,
+      default: null,
+    },
+    trialEndDate: {
+      type: Date,
+      default: null,
+    },
      groupId: {
       type: Schema.Types.ObjectId,
       ref: 'Group',

@@ -1,5 +1,7 @@
 const Joi = require("joi");
 
+ 
+
 module.exports = {
   userRegisterSchema: Joi.object({
     email: Joi.string()
@@ -334,6 +336,25 @@ module.exports = {
     }),
   }),
 
+  reviseStorySchema: Joi.object({
+  story: Joi.string().max(10000).optional().messages({
+    "string.max": "Story cannot exceed 10,000 characters",
+  }),
+
+  story_title: Joi.string().min(1).max(120).optional().messages({
+    "string.min": "Title cannot be empty",
+    "string.max": "Title cannot exceed 120 characters",
+  }),
+  book_version_title: Joi.string().min(1).max(120).optional().messages({
+    "string.min": "Book version title cannot be empty",
+    "string.max": "Book version title cannot exceed 120 characters",
+  }),
+  heroImageUrl: Joi.string().uri().optional().allow(null),
+  heroImageAlignment: Joi.string().valid('left','center','right').optional().allow(null),
+}).min(1).messages({
+  "object.min": "Please provide at least one field to update",
+}),
+
   supportRequestSchema: Joi.object({
     name: Joi.string().max(100).required().messages({
       "any.required": "Name is required",
@@ -356,4 +377,5 @@ module.exports = {
       "string.max": "Message cannot exceed 1000 characters",
     }),
   }),
+  
 };

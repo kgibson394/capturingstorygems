@@ -15,6 +15,27 @@ const {
 const salt = configurations.salt;
 const jwtSecret = configurations.jwtSecret;
 
+const TRIAL_DAYS = 10;
+
+function _calcTrialEndDate(startDate) {
+  const end = new Date(startDate);
+  end.setDate(end.getDate() + TRIAL_DAYS);
+  return end;
+}
+
+function _initTrialFieldsOnUser(userDoc, { startDate }) {
+  // Trial applies only to non-public users.
+  if (!userDoc || userDoc.isPublic) return;
+
+  // Never reset an existing trial.
+  if (userDoc.trialUsed || userDoc.trialStartDate || userDoc.trialEndDate) return;
+
+  const start = startDate ? new Date(startDate) : new Date();
+  userDoc.trialUsed = true;
+  userDoc.trialStartDate = start;
+  userDoc.trialEndDate = _calcTrialEndDate(start);
+}
+
 const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -33,7 +54,7 @@ const registerUser = async (req, res) => {
         });
       }
     }
-
+                                                           
     const hashedPassword = await bcrypt.hash(password, salt);
     const verificationCode = Math.floor(
       10000 + Math.random() * 90000
@@ -48,14 +69,18 @@ const registerUser = async (req, res) => {
         emailVerificationCode: verificationCode,
         emailVerificationCodeExpiry: codeExpiry,
       });
+
+      _initTrialFieldsOnUser(newUser, { startDate: new Date() });
       await newUser.save();
     } else {
       existingUser.password = hashedPassword;
       existingUser.emailVerificationCode = verificationCode;
       existingUser.emailVerificationCodeExpiry = codeExpiry;
+
+      // If trial fields are missing for older accounts, initialize once based on original createdAt.
+      _initTrialFieldsOnUser(existingUser, { startDate: existingUser.createdAt || new Date() });
       await existingUser.save();
     }
-
     const dynamicData = {
       subject: "Verify Your Email",
       to_email: email,
@@ -77,7 +102,7 @@ const registerUser = async (req, res) => {
     });
   }
 };
-
+   
 const googleLoginUser = async (req, res) => {
   const { credential } = req.body;
   const client = new OAuth2Client(configurations.googleClientId);
@@ -101,6 +126,8 @@ const googleLoginUser = async (req, res) => {
         emailVerified: true,
         status: "active",
       });
+
+      _initTrialFieldsOnUser(user, { startDate: new Date() });
       await user.save();
     } else {
       if (user.status === "blocked") {
@@ -114,6 +141,9 @@ const googleLoginUser = async (req, res) => {
         user.googleId = googleId;
         user.emailVerified = true;
         user.status = "active";
+
+        // Backfill trial fields if missing, but never reset.
+        _initTrialFieldsOnUser(user, { startDate: user.createdAt || new Date() });
         await user.save();
       }
     }

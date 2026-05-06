@@ -15,7 +15,7 @@ const getPlans = async (req, res) => {
       .limit(pageSize)
       .populate("group", "_id groupTag")
       .lean({ virtuals: true });
-
+console.log("Fetched plans:", plans);
     return res.status(200).json({
       message: "Plans returned successfully",
       response: {
@@ -122,7 +122,8 @@ const getPlan = async (req, res) => {
         data: plan,
       },
       error: null,
-    });
+    }); 
+    
   } catch (err) {
     return res.status(500).json({
       message: "Internal server error",

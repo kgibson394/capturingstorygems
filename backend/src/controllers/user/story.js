@@ -6,34 +6,91 @@ const Subscription = require("../../models/subscription.js");
 const { openai } = require("../../configs/openai.js");
 const { generateStoryEmail } = require("../../data/emails.js");
 const { sendMail } = require("../../utils/send-mail.js");
+const cloudinary = require("../../configs/cloudinary.util.js");
+
+
+const TRIAL_DAYS = 10;
+
+function _calcTrialEndDate(startDate) {
+  const end = new Date(startDate);
+  end.setDate(end.getDate() + TRIAL_DAYS);
+  return end;
+}
+
+async function _ensureTrialInitialized(userDoc) {
+  if (!userDoc || userDoc.isPublic) return userDoc;
+
+  // Backfill for older accounts (one-time), but never reset if already present.
+  if (userDoc.trialUsed || userDoc.trialStartDate || userDoc.trialEndDate) return userDoc;
+
+  const start = userDoc.createdAt || new Date();
+  userDoc.trialUsed = true;
+  userDoc.trialStartDate = start;
+  userDoc.trialEndDate = _calcTrialEndDate(start);
+  await userDoc.save();
+  return userDoc;
+}
+
+async function _getActivePaidSubscription(userId) {
+  return Subscription.findOne({
+    userId,
+    expiryDate: { $gt: new Date() },
+    status: "paid",
+  })
+    .select("storiesCreated storiesAllowed")
+    .lean();
+}
+
+async function _assertCanUseStoriesOrRespond(res, userDoc) {
+  if (!userDoc || userDoc.isPublic) return { ok: true, subscription: null, trialActive: false };
+
+  await _ensureTrialInitialized(userDoc);
+
+  const now = new Date();
+  const trialActive = Boolean(userDoc.trialEndDate && userDoc.trialEndDate > now);
+  const subscription = await _getActivePaidSubscription(userDoc._id);
+
+  if (!subscription && !trialActive) {
+    res.status(402).json({
+      message: "Your free trial has ended. Please select a plan to continue creating stories",
+      response: null,
+      error: "No active subscription and trial expired",
+    });
+    return { ok: false, subscription: null, trialActive };
+  }
+
+  if (subscription && subscription.storiesCreated >= subscription.storiesAllowed) {
+    res.status(403).json({
+      message: "You have reached your story limit for this subscription plan",
+      response: null,
+      error: "You have reached your story limit for this subscription plan",
+    });
+    return { ok: false, subscription, trialActive };
+  }
+
+  return { ok: true, subscription, trialActive };
+}
+
 
 const createStory = async (req, res) => {
   const userId = req.decoded?.id;
   const { story } = req.body;
 
   try {
-    const user = await User.findById(userId).select("isPublic");
-    if (!user.isPublic) {
-      const subscription = await Subscription.findOne({
-        userId,
-        expiryDate: { $gt: new Date() },
+    const user = await User.findById(userId).select(
+      "isPublic trialUsed trialStartDate trialEndDate createdAt"
+    );
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        response: null,
+        error: "User not found",
       });
-      if (!subscription) {
-        return res.status(402).json({
-          message: "Subscription required to create a story",
-          response: null,
-          error: "No active subscription",
-        });
-      }
-      if (subscription.storiesCreated >= subscription.storiesAllowed) {
-        return res.status(403).json({
-          message:
-            "You have reached your story limit for this subscription plan",
-          response: null,
-          error: "You have reached your story limit for this subscription plan",
-        });
-      }
     }
+
+    const access = await _assertCanUseStoriesOrRespond(res, user);
+    if (!access.ok) return;
+
 
     const newStory = await Story.create({
       userId,
@@ -64,7 +121,6 @@ const createStory = async (req, res) => {
         error: "Failed to generate questions from AI",
       });
     }
-
     const questionLines = gptResponse
       .split("\n")
       .filter((line) => line.trim().match(/^\d+\.\s+/))
@@ -93,6 +149,20 @@ const generateStory = async (req, res) => {
   const { qa } = req.body;
 
   try {
+    const user = await User.findById(id).select(
+      "isPublic trialUsed trialStartDate trialEndDate createdAt"
+    );
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        response: null,
+        error: "User not found",
+      });
+    }
+
+    const access = await _assertCanUseStoriesOrRespond(res, user);
+    if (!access.ok) return;
+
     const storyDoc = await Story.findById(story_id);
     if (!storyDoc) {
       return res.status(404).json({
@@ -149,6 +219,7 @@ const generateStory = async (req, res) => {
       - Time to read should be like the time you think would be enough for a reader to read your story for example "2 min read" for a story you think 2 minutes will be enough to read.
       - After the third comma, give the full story narrative.
       - Do not add extra line breaks or commentary before or after.
+      - DO not include potential story tiitles.
     `.trim();
 
     const enhancementPrompt =
@@ -168,6 +239,7 @@ const generateStory = async (req, res) => {
         error: "AI returned no content",
       });
     }
+
     if (enhancedStory.startsWith(`"`)) enhancedStory = enhancedStory.slice(1);
     if (enhancedStory.endsWith(`"`)) enhancedStory = enhancedStory.slice(0, -1);
 
@@ -178,17 +250,23 @@ const generateStory = async (req, res) => {
     const storyBody = parts.slice(3).join(",").trim();
 
     storyDoc.story_title = title;
+  
     storyDoc.read_time = timeRead;
     storyDoc.genre = genre;
     storyDoc.enhanced_story = storyBody;
+    if (!storyDoc.book_version_title) {
+      storyDoc.book_version_title = title;
+    }
     await storyDoc.save();
 
-    const user = await User.findById(id).select("isPublic");
     if (!user.isPublic) {
-      await Subscription.findOneAndUpdate(
-        { userId: user._id },
-        { $inc: { storiesCreated: 1 } }
-      );
+      // Only increment usage when a paid subscription is active.
+      if (access.subscription) {
+        await Subscription.findOneAndUpdate(
+          { userId: user._id },
+          { $inc: { storiesCreated: 1 } }
+        );
+      }
 
       const generatedStory = storyBody
         .replace(/\n\n/g, "<br /><br />")
@@ -214,7 +292,6 @@ const generateStory = async (req, res) => {
     });
   }
 };
-
 const resendStory = async (req, res) => {
   const { id, email } = req.decoded;
   const { story_id } = req.query;
@@ -235,6 +312,10 @@ const resendStory = async (req, res) => {
         error: "Story not found",
       });
     }
+
+
+
+
 
     const generatedStory = storyDoc.enhanced_story
       .replace(/\n\n/g, "<br /><br />")
@@ -266,7 +347,7 @@ const getUserStories = async (req, res) => {
     const { id: userId } = req.decoded;
 
     const stories = await Story.find({ userId, enhanced_story: { $ne: null } })
-      .select("story_title read_time genre enhanced_story user_story")
+      .select("story_title book_version_title read_time genre enhanced_story user_story heroImageUrl heroImageAlignment")
       .sort({ createdAt: 1 })
       .lean();
 
@@ -288,8 +369,9 @@ const getUserStories = async (req, res) => {
 
 const reviseStory = async (req, res) => {
   const { id } = req.decoded;
+  console.log("Req body in reviseStory:", req.body);
   const { storyId } = req.params;
-  const { story } = req.body;
+  const { story, story_title, book_version_title, heroImageUrl, heroImageAlignment } = req.body;
 
   try {
     const storyDoc = await Story.findById(storyId);
@@ -307,8 +389,23 @@ const reviseStory = async (req, res) => {
         error: "You are not authorized to update this story",
       });
     }
+     
+   
+    // storyDoc.enhanced_story = story;
+    if (typeof story === "string") storyDoc.enhanced_story = story;
+    if (typeof story_title === "string") storyDoc.story_title = story_title;
+    if (typeof book_version_title === "string")
+      storyDoc.book_version_title = book_version_title;
+    // allow clearing hero image when null is sent
+    if (heroImageUrl === null) {
+      storyDoc.heroImageUrl = null;
+    } else if (typeof heroImageUrl === "string") {
+      storyDoc.heroImageUrl = heroImageUrl;
+    }
+    if (typeof heroImageAlignment === "string" && ["left","center","right"].includes(heroImageAlignment)) {
+      storyDoc.heroImageAlignment = heroImageAlignment;
+    }
 
-    storyDoc.enhanced_story = story;
     await storyDoc.save();
 
     return res.status(200).json({
@@ -375,6 +472,46 @@ const deleteStory = async (req, res) => {
   }
 };
 
+const uploadHeroImage = async (req, res) => {
+  const { id } = req.decoded;
+  const { storyId } = req.params;
+  const { image, url, alignment } = req.body;
+
+  try {
+    const storyDoc = await Story.findById(storyId);
+    if (!storyDoc) {
+      return res.status(404).json({ message: "Story not found", response: null, error: "Story not found" });
+    }
+    if (storyDoc.userId.toString() !== id) {
+      return res.status(403).json({ message: "You are not authorized to update this story", response: null, error: "You are not authorized to update this story" });
+    }
+
+    let finalUrl = null;
+    if (typeof image === "string" && image.trim().length > 0) {
+      // image should be a data URI (base64) or a normal URL
+      try {
+        const uploadRes = await cloudinary.uploader.upload(image, { folder: "hero_images" });
+        finalUrl = uploadRes.secure_url;
+      } catch (err) {
+        return res.status(500).json({ message: "Failed to upload image", response: null, error: err.message });
+      }
+    } else if (typeof url === "string" && url.trim().length > 0) {
+      finalUrl = url;
+    }
+
+    if (finalUrl) storyDoc.heroImageUrl = finalUrl;
+    if (typeof alignment === "string" && ["left", "center", "right"].includes(alignment)) {
+      storyDoc.heroImageAlignment = alignment;
+    }
+
+    await storyDoc.save();
+
+    return res.status(200).json({ message: "Hero image saved", response: { heroImageUrl: storyDoc.heroImageUrl, heroImageAlignment: storyDoc.heroImageAlignment }, error: null });
+  } catch (err) {
+    return res.status(500).json({ message: "Internal server error", response: null, error: err.message });
+  }
+};
+
 const deleteExpiredPublicStories = async () => {
   try {
     const now = new Date();
@@ -432,11 +569,75 @@ cron.schedule("0 */6 * * *", async () => {
   await clearExpiredPublicUserPasswords();
 });
 
+
+const seedMockStoriesForMe = async (req, res) => {
+  try {
+    const { id: userId } = req.decoded;
+
+    // Optional: agar pehle se stories hain to avoid duplicates
+    const existing = await Story.countDocuments({ userId, enhanced_story: { $ne: null } });
+    if (existing >= 2) {
+      return res.status(200).json({
+        message: "Already have stories. Seed skipped.",
+        response: null,
+        error: null,
+      });
+    }
+
+    const storiesToCreate = [
+      {
+        userId,
+        user_story: "I remember learning to ride my first bicycle in the summer lane near my home.",
+        story_title: "The Blue Bicycle Summer",
+        genre: "Memoir",
+        read_time: "4 min read",
+        enhanced_story:
+          `It was the kind of summer that smelled like sun-warmed dust and mangoes.\n\n` +
+          `I learned to ride on a blue bicycle that was too big for me. The seat pin never held, so it would slowly sink while I pedaled, like the bike was laughing at my confidence.\n\n` +
+          `My father ran behind me at first—his hand steady on the back of the seat—until one moment he didn’t. I kept moving anyway, wobbling through the lane, my heart louder than the chain.\n\n` +
+          `That day I discovered something: freedom isn’t a place you reach. It’s a moment you realize you’re already in motion.`,
+        qa: [],
+      },
+      {
+        userId,
+        user_story: "I used to write letters to someone but never sent them.",
+        story_title: "Letters I Never Sent",
+        genre: "Drama",
+        read_time: "6 min read",
+        enhanced_story:
+          `I wrote you a letter every time I couldn’t say the truth out loud.\n\n` +
+          `They lived in a shoebox under my bed: apologies, gratitude, anger, and love—folded into neat squares like I could compress a whole storm into paper.\n\n` +
+          `On the night you left, the house felt too quiet, like it had swallowed its own echo.\n\n` +
+          `I didn’t send a single one.\n\n` +
+          `Instead, I tore them carefully and watched the ink bleed into the water—until the words stopped owning me.\n\n` +
+          `Some goodbyes don’t need an audience. They just need an ending.`,
+        qa: [],
+      },
+    ];
+
+    await Story.insertMany(storiesToCreate);
+
+    return res.status(201).json({
+      message: "2 mock stories saved for your account successfully",
+      response: null,
+      error: null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createStory,
   generateStory,
   resendStory,
   getUserStories,
   reviseStory,
+  uploadHeroImage,
   deleteStory,
+  seedMockStoriesForMe,
 };

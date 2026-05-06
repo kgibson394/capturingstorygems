@@ -15,3 +15,4 @@ const promptSchema = new Schema(
 );
 
 module.exports = model("Prompt", promptSchema);
+                                        

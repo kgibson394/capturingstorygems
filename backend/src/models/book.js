@@ -1,0 +1,52 @@
+const { Schema, model, Types } = require("mongoose");
+
+const bookItemSchema = new Schema(
+  {
+    storyId: {
+      type: Types.ObjectId,
+      ref: "Story",
+      required: true,
+    },
+    order: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+const bookSchema = new Schema(
+  {
+    userId: {
+      type: Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    title: {
+      type: String,
+      default: "My Keepsake Book",
+    },
+
+    // v1 simple format
+    format: {
+      size: { type: String, default: "A4" }, // A4 | Letter | 6x9 later
+    },
+// In models/book.js
+coverPdfUrl: { type: String },
+    status: {
+      type: String,
+      enum: ["draft", "pdf_generated", "ordered"],
+      default: "draft",
+    },
+
+    pdfUrl: { type: String, default: null },
+    pdfGeneratedAt: { type: Date, default: null },
+    pdfPublicId: { type: String, default: null },
+
+    items: [bookItemSchema],
+  },
+  { timestamps: true }
+);
+
+module.exports = model("Book", bookSchema);

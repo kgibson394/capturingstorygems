@@ -1,6 +1,6 @@
 const Group = require("../../models/group");
 const User = require("../../models/user");
-
+const Plan = require("../../models/plan");
 const getGroups = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;

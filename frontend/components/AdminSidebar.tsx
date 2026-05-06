@@ -60,6 +60,22 @@ const menu = [
     href: "/admin/stories",
   },
   {
+    icon: <MdOutlineAutoStories />,
+    label: "Landing Page Editor",
+    href: "/admin/landingpage-editor",
+  },
+  {
+    icon: <MdOutlineAutoStories />,
+    label: "Marketing Page Editor",
+    href: "/admin/marketing-editor",
+  },
+  {
+    icon: <MdOutlineAutoStories />,
+    label: "Email Editor",
+    href: "/admin/email-editor",
+  },
+
+  {
     icon: <LiaCrownSolid />,
     label: "Plans",
     href: "/admin/plans",
@@ -94,7 +110,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
   };
 
   const handleConfirmPasswordChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setConfirmPassword(e.target.value);
   };
@@ -142,7 +158,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
             newPassword,
             confirmPassword,
           }),
-        }
+        },
       );
       const data = await response.json();
       if (response.ok) {
@@ -196,7 +212,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed z-30 top-0 left-0 h-full transition-all duration-300 bg-[#A8DADC] border-r border-gray-200 flex flex-col shadow-lg ${
+        className={`fixed z-30 top-0 left-0 h-full transition-all duration-300 bg-[#A8DADC] border-r border-gray-200 flex flex-col min-h-0 shadow-lg ${
           expanded ? SIDEBAR_WIDTH.expanded : SIDEBAR_WIDTH.collapsed
         }`}
       >
@@ -235,7 +251,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-6">
+        <nav className="flex-1 px-3 py-6 overflow-y-auto sidebar-scrollbar-none">
           <ul className="space-y-2">
             {menu.map((item, index) => {
               const isActive = pathname === item.href;
@@ -251,7 +267,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
                         : "text-[#1D3557] hover:bg-[#1D3557] hover:text-white"
                     }`}
                   >
-                    <span className="flex-shrink-0 transition-colors">
+                    <span className="shrink-0 transition-colors">
                       {item.icon}
                     </span>
                     {expanded && (
@@ -273,7 +289,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
             }`}
             onClick={() => setIsModalOpen(true)}
           >
-            <span className="flex-shrink-0 transition-colors">
+            <span className="shrink-0 transition-colors">
               <RiLockPasswordLine />
             </span>
             {expanded && (
@@ -288,7 +304,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
             }`}
             onClick={() => logout()}
           >
-            <span className="flex-shrink-0 transition-colors">
+            <span className="shrink-0 transition-colors">
               <RiLogoutCircleLine />
             </span>
             {expanded && (
@@ -336,7 +352,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
                 onTogglePassword={() =>
                   setOldPasswordVisible(!oldPasswordVisible)
                 }
-                className={`${errors?.currentPassword && "!mb-0"}`}
+                className={`${errors?.currentPassword && "mb-0!"}`}
               />
               {errors?.currentPassword && (
                 <p className="joi-error-message mb-2">
@@ -354,7 +370,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
                 onTogglePassword={() =>
                   setNewPasswordVisible(!newPasswordVisible)
                 }
-                className={`${errors?.newPassword && "!mb-0"}`}
+                className={`${errors?.newPassword && "mb-0!"}`}
               />
               {errors?.newPassword && (
                 <p className="joi-error-message mb-2">
@@ -372,7 +388,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
                 onTogglePassword={() =>
                   setConfirmPasswordVisible(!confirmPasswordVisible)
                 }
-                className={`${errors?.confirmPassword && "!mb-0"}`}
+                className={`${errors?.confirmPassword && "mb-0!"}`}
               />
               {errors?.confirmPassword && (
                 <p className="joi-error-message mb-2">
@@ -392,7 +408,7 @@ export default function Sidebar({ expanded, onToggle }: SidebarProps) {
                 <button
                   type="submit"
                   disabled={disabled}
-                  className="px-6 py-3 bg-gradient-to-r from-[#2b4e7e] to-[#1D3557] text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center space-x-2 group"
+                  className="px-6 py-3 bg-linear-to-r from-[#2b4e7e] to-[#1D3557] text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg active:scale-95 flex items-center justify-center space-x-2 group"
                 >
                   <span>Update</span>
                 </button>

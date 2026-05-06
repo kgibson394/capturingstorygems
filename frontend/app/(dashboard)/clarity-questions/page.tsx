@@ -52,7 +52,6 @@ export default function ClarityQuestions() {
       handleCreateStory();
     }
   };
-
   const handleSkipClick = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -61,7 +60,6 @@ export default function ClarityQuestions() {
       handleCreateStory();
     }
   };
-
   const handleCreateStory = async () => {
     setIsLoading(true);
     const qa = questions.map((question, index) => ({
@@ -88,6 +86,11 @@ export default function ClarityQuestions() {
       const data = await response.json();
       if (!response.ok) {
         if (handleSessionExpiry(data.message, router)) return;
+        if (response.status === 402) {
+          toast.error(data.message || "Please select a plan first");
+          router.push("/select-plan");
+          return;
+        }
         const msg = data.message || "Failed to create story";
         return toast.error(msg);
       } else {
@@ -102,6 +105,9 @@ export default function ClarityQuestions() {
       setIsLoading(false);
     }
   };
+
+
+
 
   return (
     <PrivateRoute>
@@ -137,6 +143,7 @@ export default function ClarityQuestions() {
               </div>
             </div>
 
+        
             {/* Current Question */}
             <p className="text-lg sm:text-xl lg:text-[28px] font-medium text-[#1D3557] mb-6">
               {questions[currentQuestionIndex]}
@@ -170,7 +177,7 @@ export default function ClarityQuestions() {
             </div>
           </div>
         </div>
-
+                                                                                                                                                                      
         {/* Right Panel - Image */}
         <div className="w-full lg:w-1/2 relative order-1 lg:order-2 mb-6 sm:mb-0">
           <Image

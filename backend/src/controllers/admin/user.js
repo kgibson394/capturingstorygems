@@ -66,6 +66,7 @@ const getUsers = async (req, res) => {
           email: 1,
           emailVerified: 1,
           status: 1,
+          totalDiscount: 1,
           planName: "$plan.name",
           startDate: "$subscription.startDate",
           expiryDate: "$subscription.expiryDate",
@@ -125,6 +126,7 @@ const getDashboardData = async (req, res) => {
       return {
         email: userFields?.email || null,
         status: userFields?.status || null,
+        totalDiscount: userFields?.totalDiscount || 0,
         planName: subscription?.planId?.name || null,
         expiryDate: subscription?.expiryDate || null,
       };
@@ -208,6 +210,54 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const updateDiscount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { amount } = req.body;
+
+    if (amount === undefined || amount === null) {
+      return res.status(400).json({
+        message: "Amount is required",
+        response: null,
+        error: "Amount is required",
+      });
+    }
+
+    const num = Number(amount);
+    if (Number.isNaN(num) || num < 0) {
+      return res.status(400).json({
+        message: "Amount must be a non-negative number",
+        response: null,
+        error: "Invalid amount",
+      });
+    }
+
+    const user = await User.findById(userId).exec();
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        response: null,
+        error: "User not found",
+      });
+    }
+
+    user.totalDiscount = num;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Discount assigned successfully",
+      response: { totalDiscount: user.totalDiscount },
+      error: null,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      response: null,
+      error: err.message,
+    });
+  }
+};
+
 const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -246,5 +296,6 @@ module.exports = {
   getUsers,
   getDashboardData,
   updateStatus,
+  updateDiscount,
   deleteUser,
 };

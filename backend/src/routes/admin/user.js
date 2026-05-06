@@ -4,6 +4,7 @@ const {
   getUsers,
   getDashboardData,
   updateStatus,
+  updateDiscount,
   deleteUser,
 } = require("../../controllers/admin/user");
 const { queryValidator } = require("../../middlewares/joi.js");
@@ -19,6 +20,8 @@ router.put(
   queryValidator("updateStatus"),
   updateStatus
 );
+
+router.put("/:userId/discount", verifyAdminToken, updateDiscount);
 
 router.delete("/:userId", verifyAdminToken, deleteUser);
 

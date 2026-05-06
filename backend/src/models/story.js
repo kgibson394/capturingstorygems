@@ -23,9 +23,25 @@ const storySchema = new Schema(
         },
       },
     ],
+    // hero image for the story
+    heroImageUrl: {
+      type: String,
+      default: null,
+    },
+    heroImageAlignment: {
+      type: String,
+      enum: ["left", "center", "right"],
+      default: "center",
+    },
     story_title: {
       type: String,
       default: null,
+    },
+    book_version_title: {
+      type: String,
+      default: function () {
+        return this.story_title || null;
+      },
     },
     read_time: {
       type: String,
