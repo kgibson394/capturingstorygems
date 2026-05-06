@@ -1,4 +1,3 @@
-
 const dns = require("node:dns");
 dns.setServers(['1.1.1.1', '8.8.8.8']);
 const express = require("express");
@@ -7,11 +6,11 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 const { Mongoose } = require("./src/configs/database.js");
+
 const app = express();
 const port = process.env.PORT || 3001;
 const appName = process.env.APP_NAME;
 const version = process.env.API_VERSION;
-
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -23,20 +22,22 @@ const allowedOrigins = [
   "https://ai-story-front.vercel.app"
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+};
 
+// Apply standard CORS middleware
+app.use(cors(corsOptions));
 
+// CRITICAL FIX: Explicitly handle preflight (OPTIONS) requests
+app.options('*', cors(corsOptions));
 
 const userRoutes = require("./src/routes/user/index.js");
 const adminRoutes = require("./src/routes/admin/index.js");
@@ -64,5 +65,3 @@ app.use(`/api/${version}/admin`, adminRoutes);
 app.listen(port, () => {
   console.log(`${appName} App is Running at port ${port}`);
 });
-
-
