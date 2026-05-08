@@ -1,16 +1,15 @@
 {
-  "version": 2,
-  "name": "api-neobox",
-  "builds": [
-    {
-      "src": "index.js",
-      "use": "@vercel/node"
-    }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "express",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.js"
+      "source": "/api/:path*",
+      "destination": "/:path*"
     }
-  ]
+  ],
+  "functions": {
+    "app.js": {
+      "includeFiles": "node_modules/pdfjs-dist/legacy/build/**"
+    }
+  }
 }
