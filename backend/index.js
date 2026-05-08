@@ -22,22 +22,21 @@ const allowedOrigins = [
   "https://ai-story-front.vercel.app"
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-};
-
-// Apply standard CORS middleware
-app.use(cors(corsOptions));
-
-// CRITICAL FIX: Explicitly handle preflight (OPTIONS) requests
-app.options('*', cors(corsOptions));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "consent",
+      "institution",
+      "X-Finance-Access-Token",
+      "x-finance-access-token",
+    ],
+  })
+);
 
 const userRoutes = require("./src/routes/user/index.js");
 const adminRoutes = require("./src/routes/admin/index.js");
