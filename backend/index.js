@@ -16,6 +16,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://capturingstorygems.vercel.app",
+  "https://capturingstorygems.com",
   "https://www.capturingstorygems.com",
   "https://ai-story-frontend-ten.vercel.app",
   "https://ai-story-fe.vercel.app",
