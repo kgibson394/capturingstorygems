@@ -133,7 +133,11 @@ app.use('/api/webhooks', webhookRoutes);
 app.use(`/api/${version}/user`, userRoutes);
 app.use(`/api/${version}/admin`, adminRoutes);
 
-if (require.main === module) {
+// app.listen(port, () => {
+//   console.log(`${appName} App is Running at port ${port}`);
+// });
+
+if (process.env.NODE_ENV !== 'production') {
   app.listen(port, () => {
     console.log(`${appName} App is Running at port ${port}`);
   });
