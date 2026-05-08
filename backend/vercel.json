@@ -13,7 +13,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://www.capturingstorygems.com"
+          "value": "https://capturingstorygems.com"
         },
         {
           "key": "Access-Control-Allow-Credentials",
