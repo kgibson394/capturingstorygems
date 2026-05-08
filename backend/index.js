@@ -110,15 +110,29 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
-const userRoutes = require("./src/routes/user/index.js");
-const adminRoutes = require("./src/routes/admin/index.js");
-const webhookRoutes = require("./src/routes/user/webhook.js");
-const { checkoutComplete } = require("./src/controllers/user/plan");
+function lazyRoute(loader) {
+  let route;
+  return (req, res, next) => {
+    try {
+      if (!route) route = loader();
+      return route(req, res, next);
+    } catch (error) {
+      return next(error);
+    }
+  };
+}
 
 app.post(
   `/api/${version}/user/plan/checkout`,
   express.raw({ type: "application/json" }),
-  checkoutComplete
+  (req, res, next) => {
+    try {
+      const { checkoutComplete } = require("./src/controllers/user/plan");
+      return checkoutComplete(req, res, next);
+    } catch (error) {
+      return next(error);
+    }
+  }
 );
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -129,9 +143,21 @@ app.use(`/api/${version}/ping`, (req, res) => {
   return res.send("Welcome to Ai Story Builder Backend!");
 });
 
-app.use('/api/webhooks', webhookRoutes);
-app.use(`/api/${version}/user`, userRoutes);
-app.use(`/api/${version}/admin`, adminRoutes);
+app.use('/api/webhooks', lazyRoute(() => require("./src/routes/user/webhook.js")));
+app.use(`/api/${version}/user/auth`, lazyRoute(() => require("./src/routes/user/auth.js")));
+app.use(`/api/${version}/admin/auth`, lazyRoute(() => require("./src/routes/admin/auth.js")));
+app.use(`/api/${version}/user`, lazyRoute(() => require("./src/routes/user/index.js")));
+app.use(`/api/${version}/admin`, lazyRoute(() => require("./src/routes/admin/index.js")));
+
+app.use((error, req, res, next) => {
+  console.error("Unhandled API error:", error);
+  if (res.headersSent) return next(error);
+  return res.status(500).json({
+    message: "Internal server error",
+    response: null,
+    error: error?.message || "Unexpected server error",
+  });
+});
 
 // app.listen(port, () => {
 //   console.log(`${appName} App is Running at port ${port}`);

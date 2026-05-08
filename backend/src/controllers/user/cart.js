@@ -1,12 +1,21 @@
 const Cart = require("../../models/cart.js");
 const { createPrintJob } = require("../../utils/luluClient.js");
 const axios = require("axios");
-const pdfParse = require("pdf-parse");
 const { PDFDocument } = require("pdf-lib");
 const Stripe = require("stripe");
 const { configurations } = require("../../configs/config.js");
 const user = require("../../models/user.js");
-const stripe = Stripe(configurations.stripeSecretKey);
+
+let stripeClient;
+function getStripe() {
+  if (!configurations.stripeSecretKey) {
+    throw new Error("Missing STRIPE_SECRET_KEY");
+  }
+  if (!stripeClient) {
+    stripeClient = Stripe(configurations.stripeSecretKey);
+  }
+  return stripeClient;
+}
 
 // helper: get page count from a remote PDF URL
 async function getPdfPageCount(url) {
@@ -26,6 +35,7 @@ async function getPdfPageCount(url) {
 
     // Fallback to pdf-parse
     try {
+      const pdfParse = require("pdf-parse");
       const parsed = await pdfParse(buffer);
       const count = Number(parsed?.numpages || parsed?.numPages || 0);
       if (Number.isFinite(count) && count > 0) return count;
@@ -221,6 +231,7 @@ const createCartCheckoutSession = async (req, res) => {
     if (!cart) return res.status(404).json({ message: "Cart item not found" });
     const amount = Number(cart.total_price || 0);
     const currency = cart.currency || "USD";
+    const stripe = getStripe();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",

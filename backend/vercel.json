@@ -1,15 +1,15 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "express",
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "/:path*"
+      "src": "index.js",
+      "use": "@vercel/node"
     }
   ],
-  "functions": {
-    "app.js": {
-      "includeFiles": "node_modules/pdfjs-dist/legacy/build/**"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.js"
     }
-  }
+  ]
 }

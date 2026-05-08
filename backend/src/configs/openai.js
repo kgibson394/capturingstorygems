@@ -1,10 +1,19 @@
 const OpenAI = require("openai");
 const config = require("./config");
 
-const openai = new OpenAI({
-  apiKey: config.configurations.openAiKey,
-});
+let openai;
+function getOpenAI() {
+  if (!config.configurations.openAiKey) {
+    throw new Error("Missing OPENAI_API_KEY");
+  }
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: config.configurations.openAiKey,
+    });
+  }
+  return openai;
+}
 
 module.exports = {
-  openai,
+  getOpenAI,
 };
