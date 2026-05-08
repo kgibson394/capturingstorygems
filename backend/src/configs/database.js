@@ -4,17 +4,21 @@ const {configurations} = require("./config");
 const { runSeeder } = require("./seeders");
 const mongoString = configurations.mongoDbUrl;
 
-mongoose
-  .connect(mongoString, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Mongodb connected successfully");
-  })
-  .catch((error) => {
-    console.log("Mongodb connection error:", error);
-  });
+if (!mongoString) {
+  console.warn("MONGODB_URL is not configured. Database routes will fail until it is set.");
+} else {
+  mongoose
+    .connect(mongoString, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log("Mongodb connected successfully");
+    })
+    .catch((error) => {
+      console.log("Mongodb connection error:", error);
+    });
+}
 
 // runSeeder();
 

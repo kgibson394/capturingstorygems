@@ -9,7 +9,16 @@ const { sendMail } = require("../../utils/send-mail.js");
 const { checkoutSuccessEmail } = require("../../data/emails.js");
 const cart = require("../../models/cart.js");
 
-const stripe = Stripe(configurations.stripeSecretKey);
+let stripeClient;
+function getStripe() {
+  if (!configurations.stripeSecretKey) {
+    throw new Error("Missing STRIPE_SECRET_KEY");
+  }
+  if (!stripeClient) {
+    stripeClient = Stripe(configurations.stripeSecretKey);
+  }
+  return stripeClient;
+}
 
 const _toNewYorkDate = (dateInput) => {
   const date = new Date(dateInput);
@@ -222,6 +231,7 @@ const createCheckout = async (req, res) => {
       quantity: 1,
     },
   ];
+  const stripe = getStripe();
   // create a one-time coupon for this checkout if a discount applies
   let createdCoupon = null;
   try {
@@ -278,6 +288,7 @@ const checkoutComplete = async (req, res) => {
 
   try {
     const rawBody = req.rawBody || req.body;
+    const stripe = getStripe();
     body = stripe.webhooks.constructEvent(
       rawBody,
       sig,
@@ -290,6 +301,7 @@ const checkoutComplete = async (req, res) => {
 
   try {
     if (body.type === "checkout.session.completed") {
+      const stripe = getStripe();
       const transactionId = body.data.object.id;
       const dateCreated = new Date(body.data.object.created * 1000);
 

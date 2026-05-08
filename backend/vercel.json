@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "api-neobox",
   "builds": [
     {
       "src": "index.js",

@@ -3,7 +3,7 @@ const User = require("../../models/user.js");
 const Story = require("../../models/story.js");
 const Prompt = require("../../models/prompt.js");
 const Subscription = require("../../models/subscription.js");
-const { openai } = require("../../configs/openai.js");
+const { getOpenAI } = require("../../configs/openai.js");
 const { generateStoryEmail } = require("../../data/emails.js");
 const { sendMail } = require("../../utils/send-mail.js");
 const cloudinary = require("../../configs/cloudinary.util.js");
@@ -107,7 +107,7 @@ const createStory = async (req, res) => {
     }
     const prompt = `${promptDoc.prompt}\n"${story}"`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
@@ -225,7 +225,7 @@ const generateStory = async (req, res) => {
     const enhancementPrompt =
       `${storyPart}\n\n${qaPart}\n\nNarrative Instructions:${basePrompt}\n\nLayout & Framework Instructions:${frameworkPrompt}`.trim();
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: enhancementPrompt }],
       temperature: 0.8,
@@ -561,13 +561,15 @@ const clearExpiredPublicUserPasswords = async () => {
   }
 };
 
-cron.schedule("0 */6 * * *", async () => {
-  console.log(
-    "Running scheduled job to clear old public user passwords & delete old stories..."
-  );
-  await deleteExpiredPublicStories();
-  await clearExpiredPublicUserPasswords();
-});
+if (!process.env.VERCEL) {
+  cron.schedule("0 */6 * * *", async () => {
+    console.log(
+      "Running scheduled job to clear old public user passwords & delete old stories..."
+    );
+    await deleteExpiredPublicStories();
+    await clearExpiredPublicUserPasswords();
+  });
+}
 
 
 const seedMockStoriesForMe = async (req, res) => {
