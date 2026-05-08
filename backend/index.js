@@ -73,12 +73,12 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
-const { Mongoose } = require("./src/configs/database.js");
+require("./src/configs/database.js");
 
 const app = express();
 const port = process.env.PORT || 3001;
-const appName = process.env.APP_NAME;
-const version = process.env.API_VERSION;
+const appName = process.env.APP_NAME || "capturing-story-gems-api";
+const version = process.env.API_VERSION || "v1";
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -133,9 +133,11 @@ app.use('/api/webhooks', webhookRoutes);
 app.use(`/api/${version}/user`, userRoutes);
 app.use(`/api/${version}/admin`, adminRoutes);
 
-app.listen(port, () => {
-  console.log(`${appName} App is Running at port ${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`${appName} App is Running at port ${port}`);
+  });
+}
 
 // 3. EXPORT THE APP FOR VERCEL
 module.exports = app;
