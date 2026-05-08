@@ -11,5 +11,5 @@
     "app.js": {
       "includeFiles": "node_modules/pdfjs-dist/legacy/build/**"
     }
-  ]
+  }
 }
