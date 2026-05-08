@@ -133,9 +133,15 @@ app.use('/api/webhooks', webhookRoutes);
 app.use(`/api/${version}/user`, userRoutes);
 app.use(`/api/${version}/admin`, adminRoutes);
 
-app.listen(port, () => {
-  console.log(`${appName} App is Running at port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`${appName} App is Running at port ${port}`);
+// });
+
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`${appName} App is Running at port ${port}`);
+  });
+}
 
 // 3. EXPORT THE APP FOR VERCEL
 module.exports = app;
