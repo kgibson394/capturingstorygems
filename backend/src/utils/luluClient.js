@@ -1,12 +1,14 @@
 const axios = require('axios');
 
+const luluApiBase = (process.env.LULU_API_BASE_URL || 'https://api.sandbox.lulu.com').replace(/\/+$/, '');
+
 // simple in-memory cache
 let cachedToken = null;
 let tokenExpiry = 0;
 
-const TOKEN_URL = 'https://api.sandbox.lulu.com/auth/realms/glasstree/protocol/openid-connect/token';
-const PRINT_JOB_URL = 'https://api.sandbox.lulu.com/print-jobs/';
-const PRINT_COST_URL = 'https://api.sandbox.lulu.com/print-job-cost-calculations/';
+const TOKEN_URL = `${luluApiBase}/auth/realms/glasstree/protocol/openid-connect/token`;
+const PRINT_JOB_URL = `${luluApiBase}/print-jobs/`;
+const PRINT_COST_URL = `${luluApiBase}/print-job-cost-calculations/`;
 
 const getValidToken = async () => {
   console.log('Fetching Lulu token...');
@@ -75,7 +77,7 @@ const calculatePrintCost = async (payload) => {
 };
 
 // Validate an interior PDF (returns validation job/status)
-const VALIDATE_INTERIOR_URL = 'https://api.sandbox.lulu.com/validate-interior/';
+const VALIDATE_INTERIOR_URL = `${luluApiBase}/validate-interior/`;
 const validateInterior = async (source_url) => {
   const token = await getValidToken();
   console.log('Validating interior with Lulu. Source URL:', source_url);
@@ -110,7 +112,7 @@ const getInteriorValidationStatus = async (validationId) => {
 };
 
 // Validate a cover PDF
-const VALIDATE_COVER_URL = 'https://api.sandbox.lulu.com/validate-cover/';
+const VALIDATE_COVER_URL = `${luluApiBase}/validate-cover/`;
 const validateCover = async ({ source_url, pod_package_id, interior_page_count }) => {
   const token = await getValidToken();
   const resp = await axios.post(
@@ -139,7 +141,7 @@ const getCoverValidationStatus = async (validationId) => {
 };
 
 // Calculate cover dimensions based on POD package and interior page count
-const COVER_DIMENSIONS_URL = 'https://api.sandbox.lulu.com/cover-dimensions/';
+const COVER_DIMENSIONS_URL = `${luluApiBase}/cover-dimensions/`;
 const getCoverDimensions = async ({ pod_package_id, interior_page_count, unit } = {}) => {
   const token = await getValidToken();
   const body = { pod_package_id, interior_page_count };
