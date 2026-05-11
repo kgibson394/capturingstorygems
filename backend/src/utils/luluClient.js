@@ -11,11 +11,11 @@ const PRINT_COST_URL = 'https://api.sandbox.lulu.com/print-job-cost-calculations
 const getValidToken = async () => {
   console.log('Fetching Lulu token...');
   const now = Date.now();
-  
+
   // prefer pre-encoded credentials if provided
   const encoded = process.env.Lulu_encoded_credentials;
   let authString;
- 
+
   if (encoded && typeof encoded === 'string' && encoded.trim().length > 0) {
     authString = encoded.replace(/^Basic\s+/i, '').trim();
     console.log('Using pre-encoded Lulu credentials from env');
@@ -48,7 +48,7 @@ const getValidToken = async () => {
 const createPrintJob = async (orderData) => {
   const token = await getValidToken();
   console.log('Using Lulu token:', token);
- 
+
   const resp = await axios.post(PRINT_JOB_URL, orderData, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -63,7 +63,7 @@ const createPrintJob = async (orderData) => {
 // Calculate print job costs via Lulu API
 const calculatePrintCost = async (payload) => {
   const token = await getValidToken();
-  
+
   const resp = await axios.post(PRINT_COST_URL, payload, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -144,6 +144,8 @@ const getCoverDimensions = async ({ pod_package_id, interior_page_count, unit } 
   const token = await getValidToken();
   const body = { pod_package_id, interior_page_count };
   if (unit) body.unit = unit;
+  console.log('Cover dimensions request body:', body);
+  console.log('Cover dimensions request URL:', COVER_DIMENSIONS_URL);
   const resp = await axios.post(COVER_DIMENSIONS_URL, body, {
     headers: {
       Authorization: `Bearer ${token}`,

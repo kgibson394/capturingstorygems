@@ -1,6 +1,7 @@
 
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const { PDFDocument, rgb, StandardFonts, degrees } = require("pdf-lib");
 const axios = require("axios");
 // fontkit is required by pdf-lib to embed TTF/OTF fonts
@@ -348,7 +349,9 @@ const generateBookPdf = async (req, res) => {
       .filter(Boolean);
 
     // Ensure uploads directory exists
-    const booksDir = path.join(process.cwd(), "uploads", "books");
+    // const booksDir = path.join(process.cwd(), "uploads", "books");
+    // if (!fs.existsSync(booksDir)) fs.mkdirSync(booksDir, { recursive: true });
+    const booksDir = path.join(os.tmpdir(), "capturingstorygems-books");
     if (!fs.existsSync(booksDir)) fs.mkdirSync(booksDir, { recursive: true });
 
     // ── Interior page constants (in PDF points, 72pt = 1in) ──
