@@ -74,7 +74,9 @@ const getSubscription = async (req, res) => {
   const subscription = await Subscription.findOne({
     userId,
     status: "paid",
+    expiryDate: { $gte: new Date() },
   })
+    .sort({ expiryDate: -1 })
     .populate("planId", "name type")
     .select("planId expiryDate")
     .exec();
