@@ -218,6 +218,10 @@ export default function Page() {
     setIsDiscountOpen(true);
   };
 
+  const selectedDiscountUserDetails = selectedDiscountUser
+    ? users.find((user) => user._id === selectedDiscountUser)
+    : null;
+
   const assignDiscount = async () => {
     if (!selectedDiscountUser) return;
     try {
@@ -609,6 +613,19 @@ export default function Page() {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Assign Discount
             </h2>
+            {selectedDiscountUserDetails && (
+              <div className="mb-4 rounded-md border border-gray-200 bg-gray-50 p-3">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                  Selected User
+                </p>
+                <p className="text-sm font-semibold text-gray-900 break-all">
+                  {selectedDiscountUserDetails.email}
+                </p>
+                <p className="mt-1 text-xs text-gray-600">
+                  Plan: {selectedDiscountUserDetails.planName || "No Plan"} | Status: {selectedDiscountUserDetails.status}
+                </p>
+              </div>
+            )}
             <p className="text-sm text-gray-600 mb-4">Enter the total discount amount for this user in dollars.</p>
             <div className="mb-4">
               <input

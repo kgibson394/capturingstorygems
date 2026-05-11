@@ -61,13 +61,13 @@ const menu = [
   },
   {
     icon: <MdOutlineAutoStories />,
-    label: "Landing Page Editor",
-    href: "/admin/landingpage-editor",
+    label: "MKTG Free-Trial Editor",
+    href: "/admin/marketing-editor",
   },
   {
     icon: <MdOutlineAutoStories />,
-    label: "Marketing Page Editor",
-    href: "/admin/marketing-editor",
+    label: "Tutorial Free-Trial Editor",
+    href: "/admin/tutorial-editor",
   },
   {
     icon: <MdOutlineAutoStories />,
