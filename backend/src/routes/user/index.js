@@ -19,4 +19,6 @@ router.use("/landing-page", landingPageRoutes);
 router.use("/marketing-page", marketingPageRoutes);
 router.use("/newsletter", newsletterRoutes);
 
+
+
 module.exports = router;

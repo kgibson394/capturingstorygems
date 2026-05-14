@@ -163,11 +163,13 @@ app.use((error, req, res, next) => {
 //   console.log(`${appName} App is Running at port ${port}`);
 // });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
+
+app.listen(port, () => {
     console.log(`${appName} App is Running at port ${port}`);
   });
-}
+// if (process.env.NODE_ENV !== 'production') {
+  
+// }
 
 // 3. EXPORT THE APP FOR VERCEL
 module.exports = app;
