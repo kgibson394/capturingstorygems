@@ -6,8 +6,19 @@ import { toast } from "sonner";
 import PricingCard from "@/components/ui/PricingCard";
 const serverBaseUrl = process.env.NEXT_PUBLIC_BACKEND_SERVER_URL;
 
+type Plan = {
+  _id: string;
+  name: string;
+  type: string;
+  price: number;
+  billingCycle: string;
+  features: string[];
+  featured: boolean;
+};
+
 const PricingSection = () => {
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [totalDiscount, setTotalDiscount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,14 +35,20 @@ const PricingSection = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Fetch plans response status:", response);
       const data = await response.json();
 
       if (!response.ok) {
         const msg = data.message || "Failed to fetch plans";
         return toast.error(msg);
       } else {
-        setPlans(data.response);
+        const responsePayload = data.response;
+        if (Array.isArray(responsePayload)) {
+          setPlans(responsePayload);
+          setTotalDiscount(0);
+        } else {
+          setPlans(responsePayload?.plans ?? []);
+          setTotalDiscount(Number(responsePayload?.totalDiscount) || 0);
+        }
       }
     } catch {
       toast.error("Failed to fetch plans");
@@ -62,9 +79,26 @@ const PricingSection = () => {
           </div>
 
           <div className="w-full max-w-6xl px-6 sm:px-10 pb-14">
+            {totalDiscount > 0 && (
+              <div className="mt-8 mx-auto max-w-3xl rounded-xl border border-[#457B9D]/30 bg-[#E8F4F8] px-5 py-4 text-center shadow-sm">
+                <p className="text-[#1D3557] text-sm sm:text-base font-medium">
+                  You have{" "}
+                  <span className="font-bold text-[#457B9D]">
+                    ${totalDiscount.toFixed(2)}
+                  </span>{" "}
+                  in account credit. It will be applied to your plan at
+                  checkout.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mt-10 items-stretch">
               {plans.map((plan, idx) => (
-                <PricingCard key={idx} plan={plan} />
+                <PricingCard
+                  key={plan._id ?? idx}
+                  plan={plan}
+                  totalDiscount={totalDiscount}
+                />
               ))}
             </div>
           </div>

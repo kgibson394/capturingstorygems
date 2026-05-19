@@ -87,6 +87,16 @@ const Login = () => {
         if (error === "object") {
           setErrors(responseData.error);
         }
+      } else if (
+        response.status === 400 &&
+        responseData.response?.requiresVerification
+      ) {
+        sessionStorage.setItem("signupEmail", email);
+        toast.success(
+          responseData.message ||
+            "A verification code has been sent to your email."
+        );
+        router.push("/verify-otp");
       } else {
         setAlertMessage(
           responseData.message || "Login failed. Please try again"

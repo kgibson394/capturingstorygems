@@ -45,9 +45,9 @@ const VerifyOTP = () => {
     if (emailFromStorage) {
       setEmail(emailFromStorage);
     } else {
-      router.push("/signup");
+      router.push("/login");
     }
-  }, []);
+  }, [router]);
 
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOtp(e.target.value);

@@ -184,9 +184,45 @@ const loginUser = async (req, res) => {
       });
     }
     if (!user.emailVerified) {
+      if (!user.password) {
+        return res.status(400).json({
+          message:
+            "Password has not been set for this user. Use Google Sign-In to continue",
+          response: null,
+          error:
+            "Password has not been set for this user. Use Google Sign-In to continue",
+        });
+      }
+
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({
+          message: "Invalid credentials",
+          response: null,
+          error: "Invalid credentials",
+        });
+      }
+
+      const verificationCode = Math.floor(
+        10000 + Math.random() * 90000
+      ).toString();
+      const codeExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
+      user.emailVerificationCode = verificationCode;
+      user.emailVerificationCodeExpiry = codeExpiry;
+      await user.save();
+
+      const dynamicData = {
+        subject: "Verify Your Email",
+        to_email: email,
+      };
+      const emailTemplate = await resendOtpEmail(verificationCode, "verify");
+      await sendMail(emailTemplate, dynamicData);
+
       return res.status(400).json({
-        message: "Email not verified",
-        response: null,
+        message:
+          "Email not verified. A new verification code has been sent to your email.",
+        response: { requiresVerification: true },
         error: "Email not verified",
       });
     }

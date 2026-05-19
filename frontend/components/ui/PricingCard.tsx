@@ -22,9 +22,15 @@ interface PricingPlan {
 
 interface PricingCardProps {
   plan: PricingPlan;
+  totalDiscount?: number;
 }
 
-const PricingCard = ({ plan }: PricingCardProps) => {
+const formatPrice = (amount: number) => {
+  const rounded = Math.round(amount * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2);
+};
+
+const PricingCard = ({ plan, totalDiscount = 0 }: PricingCardProps) => {
   const router = useRouter();
   const [disabled, setDisabled] = useState(false);
   console.log("PK:", stripePublicKey);
@@ -94,6 +100,14 @@ const PricingCard = ({ plan }: PricingCardProps) => {
     }
   };
 
+  const discountApplied =
+    totalDiscount > 0 ? Math.min(totalDiscount, plan.price) : 0;
+  const discountedPrice = plan.price - discountApplied;
+  const displayOriginalPrice =
+    discountApplied > 0 ? formatPrice(plan.price) : plan.originalPrice;
+  const displayPrice =
+    discountApplied > 0 ? formatPrice(discountedPrice) : formatPrice(plan.price);
+
   return (
     <div
       className={`relative group transform transition-all duration-500 hover:scale-[1.02] ${
@@ -130,17 +144,29 @@ const PricingCard = ({ plan }: PricingCardProps) => {
             >
               {plan.name}
             </h3>
+
+            {discountApplied > 0 && (
+              <span
+                className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold ${
+                  plan.featured
+                    ? "bg-emerald-400/90 text-[#1D3557]"
+                    : "bg-emerald-100 text-emerald-800"
+                }`}
+              >
+                ${formatPrice(discountApplied)} off applied
+              </span>
+            )}
           </div>
 
           <div className="mb-8">
             <div className="flex items-center justify-center mb-2">
-              {plan.originalPrice && (
+              {displayOriginalPrice && (
                 <span
                   className={`text-lg line-through mr-2 ${
                     plan.featured ? "text-blue-200" : "text-[#565353]"
                   }`}
                 >
-                  ${plan.originalPrice}
+                  ${displayOriginalPrice}
                 </span>
               )}
               <span
@@ -151,7 +177,7 @@ const PricingCard = ({ plan }: PricingCardProps) => {
                 $
               </span>
               <span className="text-4xl sm:text-5xl font-bold">
-                {plan.price}
+                {displayPrice}
               </span>
             </div>
             <div

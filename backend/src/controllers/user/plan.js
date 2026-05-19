@@ -54,9 +54,17 @@ const getAllPlans = async (req, res) => {
       });
     }
 
+    let totalDiscount = 0;
+    if (userId) {
+      const user = await User.findById(userId).select("totalDiscount").exec();
+      if (user && typeof user.totalDiscount === "number") {
+        totalDiscount = Math.max(0, user.totalDiscount);
+      }
+    }
+
     return res.status(200).json({
       message: "All plans fetched successfully",
-      response: plans,
+      response: { plans, totalDiscount },
       error: null,
     });
   } catch (error) {
