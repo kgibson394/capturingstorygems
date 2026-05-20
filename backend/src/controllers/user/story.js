@@ -7,69 +7,10 @@ const { getOpenAI } = require("../../configs/openai.js");
 const { generateStoryEmail } = require("../../data/emails.js");
 const { sendMail } = require("../../utils/send-mail.js");
 const cloudinary = require("../../configs/cloudinary.util.js");
-
-
-const TRIAL_DAYS = 10;
-
-function _calcTrialEndDate(startDate) {
-  const end = new Date(startDate);
-  end.setDate(end.getDate() + TRIAL_DAYS);
-  return end;
-}
-
-async function _ensureTrialInitialized(userDoc) {
-  if (!userDoc || userDoc.isPublic) return userDoc;
-
-  // Backfill for older accounts (one-time), but never reset if already present.
-  if (userDoc.trialUsed || userDoc.trialStartDate || userDoc.trialEndDate) return userDoc;
-
-  const start = userDoc.createdAt || new Date();
-  userDoc.trialUsed = true;
-  userDoc.trialStartDate = start;
-  userDoc.trialEndDate = _calcTrialEndDate(start);
-  await userDoc.save();
-  return userDoc;
-}
-
-async function _getActivePaidSubscription(userId) {
-  return Subscription.findOne({
-    userId,
-    expiryDate: { $gt: new Date() },
-    status: "paid",
-  })
-    .select("storiesCreated storiesAllowed")
-    .lean();
-}
-
-async function _assertCanUseStoriesOrRespond(res, userDoc) {
-  if (!userDoc || userDoc.isPublic) return { ok: true, subscription: null, trialActive: false };
-
-  await _ensureTrialInitialized(userDoc);
-
-  const now = new Date();
-  const trialActive = Boolean(userDoc.trialEndDate && userDoc.trialEndDate > now);
-  const subscription = await _getActivePaidSubscription(userDoc._id);
-
-  if (!subscription && !trialActive) {
-    res.status(402).json({
-      message: "Your free trial has ended. Please select a plan to continue creating stories",
-      response: null,
-      error: "No active subscription and trial expired",
-    });
-    return { ok: false, subscription: null, trialActive };
-  }
-
-  if (subscription && subscription.storiesCreated >= subscription.storiesAllowed) {
-    res.status(403).json({
-      message: "You have reached your story limit for this subscription plan",
-      response: null,
-      error: "You have reached your story limit for this subscription plan",
-    });
-    return { ok: false, subscription, trialActive };
-  }
-
-  return { ok: true, subscription, trialActive };
-}
+const {
+  assertCanUseStoriesOrRespond,
+  evaluateStoryAccess,
+} = require("../../utils/storyAccess.js");
 
 
 const createStory = async (req, res) => {
@@ -88,9 +29,8 @@ const createStory = async (req, res) => {
       });
     }
 
-    const access = await _assertCanUseStoriesOrRespond(res, user);
+    const access = await assertCanUseStoriesOrRespond(res, user);
     if (!access.ok) return;
-
 
     const newStory = await Story.create({
       userId,
@@ -160,7 +100,7 @@ const generateStory = async (req, res) => {
       });
     }
 
-    const access = await _assertCanUseStoriesOrRespond(res, user);
+    const access = await assertCanUseStoriesOrRespond(res, user);
     if (!access.ok) return;
 
     const storyDoc = await Story.findById(story_id);
@@ -575,6 +515,20 @@ if (!process.env.VERCEL) {
 const seedMockStoriesForMe = async (req, res) => {
   try {
     const { id: userId } = req.decoded;
+
+    const user = await User.findById(userId).select(
+      "isPublic trialUsed trialStartDate trialEndDate createdAt"
+    );
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        response: null,
+        error: "User not found",
+      });
+    }
+
+    const access = await assertCanUseStoriesOrRespond(res, user);
+    if (!access.ok) return;
 
     // Optional: agar pehle se stories hain to avoid duplicates
     const existing = await Story.countDocuments({ userId, enhanced_story: { $ne: null } });

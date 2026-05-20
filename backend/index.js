@@ -66,8 +66,8 @@
 //   console.log(`${appName} App is Running at port ${port}`);
 // });
 
-// const dns = require("node:dns");
-// dns.setServers(['1.1.1.1', '8.8.8.8']);
+const dns = require("node:dns");
+ dns.setServers(['1.1.1.1', '8.8.8.8']);
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");

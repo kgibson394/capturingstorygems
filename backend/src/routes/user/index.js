@@ -9,6 +9,7 @@ const cartRoutes = require("./cart.js");
 const landingPageRoutes = require("./landingPage.js");
 const marketingPageRoutes = require("./marketingPage.js");
 const newsletterRoutes = require("./newsletter.js");
+const invitationPageRoutes = require("./invitationPage.js");
 
 router.use("/auth", authRoutes);
 router.use("/plan", planRoutes);
@@ -18,7 +19,6 @@ router.use("/cart", cartRoutes);
 router.use("/landing-page", landingPageRoutes);
 router.use("/marketing-page", marketingPageRoutes);
 router.use("/newsletter", newsletterRoutes);
-
-
+router.use("/invitation-page", invitationPageRoutes);
 
 module.exports = router;

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RiLockPasswordLine, RiLogoutCircleLine } from "react-icons/ri";
 import { IoCodeSlashOutline } from "react-icons/io5";
-import { MdOutlineAutoStories } from "react-icons/md";
+import { MdOutlineAutoStories, MdOutlineMailOutline } from "react-icons/md";
 import {
   LiaUser,
   LiaUsersSolid,
@@ -73,6 +73,11 @@ const menu = [
     icon: <MdOutlineAutoStories />,
     label: "Email Editor",
     href: "/admin/email-editor",
+  },
+  {
+    icon: <MdOutlineMailOutline />,
+    label: "Invitation Page",
+    href: "/admin/invitation-editor",
   },
 
   {

@@ -11,6 +11,7 @@ const groupRoutes = require("./group.js");
 const landingPageRoutes = require("./landingPage.js");
 const marketingPageRoutes = require("./marketingPage.js");
 const emailTemplateRoutes = require("./emailTemplate.js");
+const invitationPageRoutes = require("./invitationPage.js");
 
 router.use("/auth", authRoutes);
 router.use("/user", userRoutes);
@@ -22,5 +23,6 @@ router.use("/group", groupRoutes);
 router.use("/landing-page", landingPageRoutes);
 router.use("/marketing-page", marketingPageRoutes);
 router.use("/email-template", emailTemplateRoutes);
+router.use("/invitation-page", invitationPageRoutes);
 
 module.exports = router;
