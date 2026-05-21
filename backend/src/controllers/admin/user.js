@@ -105,7 +105,30 @@ const getDashboardData = async (req, res) => {
 
     const usersCount = await User.countDocuments(query);
     const storiesCount = await Story.countDocuments();
-    const subscriptionCount = await Subscription.countDocuments();
+
+    const now = new Date();
+    const activePlansResult = await Subscription.aggregate([
+      { $match: { expiryDate: { $gte: now } } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$userId",
+          latestSubscription: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      { $match: { "user.isPublic": { $ne: true } } },
+      { $count: "total" },
+    ]);
+    const totalActivePlans = activePlansResult[0]?.total ?? 0;
 
     const usersWithPlanInfo = await User.find(query)
       .sort({ createdAt: -1 })
@@ -142,7 +165,7 @@ const getDashboardData = async (req, res) => {
           plans,
           totalUsers: usersCount,
           totalStories: storiesCount,
-          totalActivePlans: subscriptionCount,
+          totalActivePlans,
         },
       },
       error: null,
