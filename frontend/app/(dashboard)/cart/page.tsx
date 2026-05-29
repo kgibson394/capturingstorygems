@@ -117,6 +117,9 @@ export default function CartPage() {
                       <div className="mt-2 space-y-1 text-sm text-slate-700 wrap-break-word">
                         <div>Option: <span className="font-medium">{it.shipping_option || "-"}</span></div>
                         <div>POD Package: <span className="font-medium">{it.pod_package_id || "-"}</span></div>
+                        {it.trim_code && (
+                          <div>Trim: <span className="font-medium">{it.trim_code}</span></div>
+                        )}
                         <div>Quantity: <span className="font-semibold">{it.quantity}</span></div>
                       </div>
                     </div>

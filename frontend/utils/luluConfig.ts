@@ -49,7 +49,7 @@ export interface BookSpecification {
 
 export const luluOptions = {
   defaults: {
-    trimSize: "0744X0968", // default: US Trade (6x9)
+    trimSize: "0600X0900", // US Trade (6.00 × 9.00 in)
   },
   // available trim sizes for users to choose
   sizes: [
@@ -92,6 +92,17 @@ export const luluOptions = {
  */
 export const generatePodPackageId = (spec: BookSpecification): string => {
   return `${spec.size}${spec.color}${spec.binding}${spec.paper}${spec.finish}`;
+};
+
+/** Extract trim code (e.g. 0600X0900) from a full POD package id. */
+export const extractTrimCodeFromPod = (podPackageId: string): string | null => {
+  const m = String(podPackageId || "").match(/(\d{4}X\d{4})/i);
+  return m ? m[1].toUpperCase() : null;
+};
+
+export const getTrimLabel = (trimCode: string): string => {
+  const found = luluOptions.sizes.find((s) => s.code === trimCode);
+  return found?.label || trimCode;
 };
 
 // ==========================================

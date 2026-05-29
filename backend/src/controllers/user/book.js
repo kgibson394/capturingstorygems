@@ -3,6 +3,11 @@ const path = require("path");
 const fs = require("fs");
 const os = require("os");
 const { PDFDocument, rgb, StandardFonts, degrees } = require("pdf-lib");
+const {
+  resolveTrimInches,
+  extractTrimCode,
+  getExpectedPageSizePoints,
+} = require("../../utils/luluPodConfig.js");
 const axios = require("axios");
 // fontkit is required by pdf-lib to embed TTF/OTF fonts
 let fontkit = null;
@@ -163,7 +168,7 @@ const getMyBooks = async (req, res) => {
   try {
     const { id: userId } = req.decoded;
     const books = await Book.find({ userId })
-      .select("title status format items pdfUrl coverPdfUrl createdAt updatedAt")
+      .select("title status format items pdfUrl coverPdfUrl pod_package_id pdf_trim_code createdAt updatedAt")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -342,6 +347,30 @@ const generateBookPdf = async (req, res) => {
 
     if (!book) return res.status(404).json({ message: "Book not found", error: "Book not found" });
 
+    const podPackage =
+      podFromBody ||
+      req.body?.pod_package_id ||
+      req.body?.podPackageId ||
+      req.body?.podId ||
+      book.pod_package_id ||
+      undefined;
+
+    if (!podPackage || typeof podPackage !== "string") {
+      return res.status(400).json({
+        message:
+          "pod_package_id is required to generate a print-ready PDF. Select book size and binding in the builder, then generate again.",
+        error: "Missing pod_package_id",
+      });
+    }
+
+    const trimResolved = resolveTrimInches(podPackage);
+    if (!trimResolved) {
+      return res.status(400).json({
+        message: `Unrecognized trim size in pod_package_id "${podPackage}".`,
+        error: "Invalid pod_package_id",
+      });
+    }
+
     const sortedItems = (book.items || [])
       .slice()
       .sort((a, b) => a.order - b.order)
@@ -394,37 +423,15 @@ const generateBookPdf = async (req, res) => {
 
     // ── Interior page constants (in PDF points, 72pt = 1in) ──
     const PTS_PER_INCH = 72;
-    let trimWidthIn = 6.25;
-    let trimHeightIn = 9.25;
-
-    const podPackage = req.body.pod_package_id || req.body.podPackageId || req.body.podId;
-
-    if (podPackage && typeof podPackage === 'string') {
-      const m = podPackage.match(/(\d{4}X\d{4})/);
-      const sizeCode = m ? m[1] : podPackage;
-      const SIZE_MAP = {
-        '0600X0900': [6.00, 9.00],
-        '0700X1000': [7.00, 10.00],
-        '0744X0968': [7.44, 9.68],
-        '0614X0921': [6.14, 9.21],
-      };
-      if (SIZE_MAP[sizeCode]) {
-        [trimWidthIn, trimHeightIn] = SIZE_MAP[sizeCode];
-      } else {
-        const parts = String(sizeCode).split(/[xX]/).map((p) => parseFloat(p));
-        if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-          trimWidthIn = parts[0];
-          trimHeightIn = parts[1];
-        }
-      }
-    }
+    let trimWidthIn = trimResolved.widthIn;
+    let trimHeightIn = trimResolved.heightIn;
 
     // =========================================================
     // 🚀 LULU BLEED FIX
     // =========================================================
     // Full Color (FC) packages expect the PDF to include "Bleed" dimensions.
     // Lulu requires adding 0.125" to the Top, Bottom, and Outside edges.
-    const needsBleed = podPackage && podPackage.includes('FC');
+    const needsBleed = podPackage.includes("FC");
     // Width increases by 0.125". Height increases by 0.25" (top + bottom).
     const finalWidthIn = needsBleed ? trimWidthIn + 0.125 : trimWidthIn;
     const finalHeightIn = needsBleed ? trimHeightIn + 0.25 : trimHeightIn;
@@ -928,9 +935,11 @@ const generateBookPdf = async (req, res) => {
     } else {
       console.log(`Fetching cover dimensions from Lulu for interior_page_count: ${interiorPageCount}`);
       try {
-        const podToUse = podFromBody || podId || book.pod_package_id || process.env.DEFAULT_POD_PACKAGE_ID || undefined;
-        if (podToUse && !book.pod_package_id) book.pod_package_id = podToUse;
-        const dims = await luluClient.getCoverDimensions({ pod_package_id: podToUse, interior_page_count: interiorPageCount, unit: 'inch' });
+        const dims = await luluClient.getCoverDimensions({
+          pod_package_id: podPackage,
+          interior_page_count: interiorPageCount,
+          unit: "inch",
+        });
         if (dims && dims.width && dims.height) {
           const rw = parseFloat(dims.width); const rh = parseFloat(dims.height);
           if (rw > 0) coverWidthIn = rw;
@@ -1087,15 +1096,25 @@ const generateBookPdf = async (req, res) => {
     // Save to DB
     book.pdfUrl = interiorUpload.secure_url;
     book.coverPdfUrl = coverUpload.secure_url; // Make sure Model has this field!
+    book.pod_package_id = podPackage;
+    book.pdf_trim_code = trimResolved.trimCode;
     book.status = "pdf_generated";
+    book.pdfGeneratedAt = new Date();
     await book.save();
+
+    const pageSize = getExpectedPageSizePoints(podPackage);
 
     return res.status(200).json({
       message: "Generated Interior and Cover PDFs successfully",
       response: {
         data: {
           pdfUrl: book.pdfUrl,
-          coverPdfUrl: book.coverPdfUrl
+          coverPdfUrl: book.coverPdfUrl,
+          pod_package_id: book.pod_package_id,
+          pdf_trim_code: book.pdf_trim_code,
+          page_size_inches: pageSize
+            ? { width: pageSize.widthIn, height: pageSize.heightIn }
+            : undefined,
         }
       }
     });

@@ -4,27 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Footer from "@/components/Footer";
 import { getInvitationPagePublic } from "@/api/invitationPageApis";
+import { normalizeInvitationHtml } from "@/utils/invitationHtml";
+import "react-quill-new/dist/quill.snow.css";
 
 function enhanceLinks(container: HTMLElement | null) {
   if (!container) return;
   container.querySelectorAll("a").forEach((anchor) => {
     anchor.setAttribute("target", "_blank");
     anchor.setAttribute("rel", "noopener noreferrer");
-  });
-}
-
-function normalizeQuillOverflow(container: HTMLElement | null) {
-  if (!container) return;
-  container.querySelectorAll("[style]").forEach((el) => {
-    const htmlEl = el as HTMLElement;
-    const style = htmlEl.getAttribute("style") || "";
-    if (/white-space\s*:\s*nowrap/i.test(style)) {
-      htmlEl.style.whiteSpace = "normal";
-    }
-    if (/width\s*:\s*\d+px/i.test(style)) {
-      htmlEl.style.maxWidth = "100%";
-      htmlEl.style.width = "auto";
-    }
   });
 }
 
@@ -45,7 +32,7 @@ export default function InvitationPage() {
         const data = await getInvitationPagePublic();
         if (cancelled) return;
         setTitle(data.title || "");
-        setHtml(data.html || "");
+        setHtml(normalizeInvitationHtml(data.html || ""));
       } catch (err: unknown) {
         if (cancelled) return;
         const message =
@@ -65,7 +52,6 @@ export default function InvitationPage() {
   useEffect(() => {
     if (!loading && html) {
       enhanceLinks(contentRef.current);
-      normalizeQuillOverflow(contentRef.current);
     }
   }, [loading, html]);
 
@@ -118,11 +104,13 @@ export default function InvitationPage() {
 
             <div className="px-5 sm:px-8 lg:px-12 py-8 sm:py-10 min-w-0 overflow-hidden">
               {html ? (
-                <div
-                  ref={contentRef}
-                  className="invitation-content w-full min-w-0 max-w-full overflow-x-hidden"
-                  dangerouslySetInnerHTML={{ __html: html }}
-                />
+                <div className="ql-snow invitation-quill-view w-full min-w-0">
+                  <div
+                    ref={contentRef}
+                    className="ql-editor"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
+                </div>
               ) : (
                 <p className="text-center text-gray-500 text-sm py-8">
                   No invitation content has been published yet.

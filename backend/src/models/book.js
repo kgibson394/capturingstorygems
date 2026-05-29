@@ -43,6 +43,10 @@ coverPdfUrl: { type: String },
     pdfUrl: { type: String, default: null },
     pdfGeneratedAt: { type: Date, default: null },
     pdfPublicId: { type: String, default: null },
+    /** POD package id used when the interior PDF was last generated */
+    pod_package_id: { type: String, default: null },
+    /** Trim code (e.g. 0600X0900) extracted from pod_package_id at generation time */
+    pdf_trim_code: { type: String, default: null },
 
     items: [bookItemSchema],
   },

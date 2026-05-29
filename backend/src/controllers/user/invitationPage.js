@@ -1,4 +1,7 @@
 const InvitationPage = require("../../models/invitationPage.js");
+const {
+  normalizeInvitationHtml,
+} = require("../../utils/invitationHtml.js");
 
 const DEFAULT_KEY = "default";
 
@@ -14,7 +17,7 @@ const getInvitationPagePublic = async (req, res) => {
         data: {
           key,
           title: doc?.title || "",
-          html: doc?.html || "",
+          html: normalizeInvitationHtml(doc?.html || ""),
           updatedAt: doc?.updatedAt || null,
         },
       },

@@ -1,5 +1,9 @@
 const Cart = require("../../models/cart.js");
 const { createPrintJob } = require("../../utils/luluClient.js");
+const {
+  validatePdfMatchesPodPackage,
+  extractTrimCode,
+} = require("../../utils/luluPodConfig.js");
 const axios = require("axios");
 const { PDFDocument } = require("pdf-lib");
 const Stripe = require("stripe");
@@ -26,7 +30,7 @@ async function getPdfPageCount(url) {
 
     // Prefer pdf-lib (handles many PDFs reliably)
     try {
-      const doc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+      const doc = await PDFDocument.load(buffer);
       const count = doc.getPages().length;
       if (Number.isFinite(count) && count > 0) return count;
     } catch (e) {
@@ -71,6 +75,24 @@ const createCartItem = async (req, res) => {
 
     if (!pdfUrl) return res.status(400).json({ message: "pdfUrl is required", error: "Missing pdfUrl" });
     if (!shipping_address) return res.status(400).json({ message: "shipping_address is required", error: "Missing shipping_address" });
+    if (!pod_package_id) {
+      return res.status(400).json({
+        message: "pod_package_id is required. Select book size and binding in the book builder.",
+        error: "Missing pod_package_id",
+      });
+    }
+
+    const dimCheck = await validatePdfMatchesPodPackage(pdfUrl, pod_package_id);
+    if (!dimCheck.ok) {
+      return res.status(400).json({
+        message: dimCheck.message,
+        error: "POD_PDF_DIMENSION_MISMATCH",
+        response: {
+          expected: dimCheck.expected,
+          actual: dimCheck.actual,
+        },
+      });
+    }
 
     const pageCount = await getPdfPageCount(pdfUrl);
 
@@ -96,7 +118,7 @@ const createCartItem = async (req, res) => {
         SS: { name: 'Saddle Stitch', min: 4, max: 48 },
         CO: { name: 'Coil Bound', min: 2, max: 470 },
       };
-
+ 
       // If we detected a binding and page count is known, enforce range
       if (binding && bindingRanges[binding]) {
         const { name, min, max } = bindingRanges[binding];
@@ -124,6 +146,7 @@ const createCartItem = async (req, res) => {
       shipping_address,
       shipping_option: shipping_option || undefined,
       pod_package_id: pod_package_id || undefined,
+      trim_code: extractTrimCode(pod_package_id) || dimCheck.trimCode || undefined,
       quantity: Number(quantity) || 1,
       page_count: pageCount,
       total_price: Number(total_price) + (Number(total_price) * (Number(process.env.BOOK_PRICE_PERCENTAGE) / 100)) || 0,
@@ -156,11 +179,26 @@ const sendCartToPrint = async (req, res) => {
     const { id: userId } = req.decoded;
     const { id } = req.params;
     const { contact_email, production_delay } = req.body || {};
-
+    console.log("Production delay:", production_delay);
     const cart = await Cart.findOne({ _id: id, userId }).lean();
     if (!cart) return res.status(404).json({ message: "Cart item not found" });
-
+    console.log("Cart:", cart);
     if (!cart.pdfUrl) return res.status(400).json({ message: "Cart item missing pdfUrl" });
+    if (!cart.pod_package_id) {
+      return res.status(400).json({ message: "Cart item missing pod_package_id", error: "Missing pod_package_id" });
+    }
+
+    const dimCheck = await validatePdfMatchesPodPackage(cart.pdfUrl, cart.pod_package_id);
+    if (!dimCheck.ok) {
+      return res.status(400).json({
+        message: dimCheck.message,
+        error: "POD_PDF_DIMENSION_MISMATCH",
+      });
+    }
+
+    console.log("Cart PDF URL:", cart.pdfUrl);
+    const pageCount = await getPdfPageCount(cart.pdfUrl);
+    console.log("Page count:", pageCount);
 
     // Compose order data for Lulu
     // const orderData = {
@@ -208,7 +246,7 @@ const sendCartToPrint = async (req, res) => {
 
     // Create print job via Lulu client
     const resp = await createPrintJob(orderData);
-
+    console.log("Print job created:", resp);
     // mark cart as sent
     await Cart.updateOne({ _id: id }, { $set: { status: "sent" } });
 
@@ -266,7 +304,15 @@ const sendCartToPrintById = async (userId, cartId, production_delay) => {
   const cart = await Cart.findOne({ _id: cartId, userId }).lean();
   if (!cart) throw new Error("Cart item not found");
   if (!cart.pdfUrl) throw new Error("Cart item missing pdfUrl");
+  if (!cart.pod_package_id) throw new Error("Cart item missing pod_package_id");
 
+  const dimCheck = await validatePdfMatchesPodPackage(cart.pdfUrl, cart.pod_package_id);
+  if (!dimCheck.ok) {
+    throw new Error(dimCheck.message);
+  }
+
+  const pageCount = await getPdfPageCount(cart.pdfUrl);
+  console.log("Page count:", pageCount); 
   cart.shipping_address.name = cart.name;
 
   const orderData = {

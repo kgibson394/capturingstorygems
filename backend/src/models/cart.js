@@ -28,6 +28,8 @@ const cartSchema = new Schema(
     shipping_address: { type: shippingSchema, required: true },
     shipping_option: { type: String },
     pod_package_id: { type: String },
+    /** Trim code at time of add-to-cart (must match interior PDF) */
+    trim_code: { type: String },
     quantity: { type: Number, default: 1 },
     page_count: { type: Number, default: 0 },
     total_price: { type: Number, default: 0 },

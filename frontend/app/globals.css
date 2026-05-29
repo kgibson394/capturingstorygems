@@ -74,35 +74,169 @@ button {
   color: #52c41a !important;
 }
 
-/* Quill editor overrides (scoped) */
-.custom-quill-container .ql-toolbar.ql-snow {
+/* Invitation Quill — shared between admin editor and public invitation page */
+.custom-quill-container.invitation-quill-view .ql-toolbar.ql-snow {
   border: none !important;
   border-bottom: 1px solid #f3f4f6 !important;
   padding: 12px 24px !important;
   background-color: #fafbfc;
 }
 
-.custom-quill-container .ql-container.ql-snow {
+.custom-quill-container.invitation-quill-view .ql-container.ql-snow,
+.invitation-quill-view.ql-snow {
   border: none !important;
   font-family: inherit !important;
   font-size: 14px !important;
   color: #4b5563 !important;
 }
 
-.custom-quill-container .ql-editor {
+.custom-quill-container.invitation-quill-view .ql-editor {
   padding: 24px !important;
   min-height: 400px;
 }
 
-/* Ensure common formatting tags are visually applied */
-.custom-quill-container .ql-editor em,
-.custom-quill-container .ql-editor i {
+.invitation-quill-view.ql-snow {
+  width: 100%;
+  min-width: 0;
+}
+
+.invitation-quill-view.ql-snow > .ql-editor,
+.custom-quill-container.invitation-quill-view .ql-editor {
+  padding: 24px !important;
+  height: auto;
+  overflow: visible;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-wrap !important;
+  line-height: 1.42 !important;
+}
+
+.invitation-quill-view.ql-snow > .ql-editor {
+  min-height: auto;
+}
+
+/* Match Quill Enter / Shift+Enter line spacing (blank lines + soft breaks) */
+.invitation-quill-view .ql-editor p,
+.invitation-quill-view .ql-editor h1,
+.invitation-quill-view .ql-editor h2,
+.invitation-quill-view .ql-editor h3,
+.invitation-quill-view .ql-editor h4,
+.invitation-quill-view .ql-editor h5,
+.invitation-quill-view .ql-editor h6,
+.invitation-quill-view .ql-editor blockquote,
+.invitation-quill-view .ql-editor ol,
+.invitation-quill-view .ql-editor pre,
+.custom-quill-container.invitation-quill-view .ql-editor p,
+.custom-quill-container.invitation-quill-view .ql-editor h1,
+.custom-quill-container.invitation-quill-view .ql-editor h2,
+.custom-quill-container.invitation-quill-view .ql-editor h3,
+.custom-quill-container.invitation-quill-view .ql-editor h4,
+.custom-quill-container.invitation-quill-view .ql-editor h5,
+.custom-quill-container.invitation-quill-view .ql-editor h6,
+.custom-quill-container.invitation-quill-view .ql-editor blockquote,
+.custom-quill-container.invitation-quill-view .ql-editor ol,
+.custom-quill-container.invitation-quill-view .ql-editor pre {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.invitation-quill-view .ql-editor p,
+.custom-quill-container.invitation-quill-view .ql-editor p {
+  min-height: 1.42em;
+}
+
+.invitation-quill-view .ql-editor br,
+.custom-quill-container.invitation-quill-view .ql-editor br {
+  display: inline;
+}
+
+/* Quill 2 lists (bullets + numbered) — reinforce snow theme on public page */
+.invitation-quill-view .ql-editor ol,
+.custom-quill-container.invitation-quill-view .ql-editor ol {
+  padding-left: 1.5em !important;
+  margin: 0 !important;
+}
+
+.invitation-quill-view .ql-editor li,
+.custom-quill-container.invitation-quill-view .ql-editor li {
+  list-style-type: none !important;
+  padding-left: 1.5em !important;
+  position: relative !important;
+  min-height: 1.42em;
+}
+
+.invitation-quill-view .ql-editor li > .ql-ui:before,
+.custom-quill-container.invitation-quill-view .ql-editor li > .ql-ui:before {
+  display: inline-block !important;
+  margin-left: -1.5em !important;
+  margin-right: 0.3em !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  width: 1.2em !important;
+}
+
+.invitation-quill-view .ql-editor li[data-list="bullet"] > .ql-ui:before,
+.custom-quill-container.invitation-quill-view .ql-editor li[data-list="bullet"] > .ql-ui:before {
+  content: "\2022" !important;
+}
+
+.invitation-quill-view .ql-editor li[data-list="ordered"],
+.custom-quill-container.invitation-quill-view .ql-editor li[data-list="ordered"] {
+  counter-increment: list-0 !important;
+}
+
+.invitation-quill-view .ql-editor li[data-list="ordered"] > .ql-ui:before,
+.custom-quill-container.invitation-quill-view .ql-editor li[data-list="ordered"] > .ql-ui:before {
+  content: counter(list-0, decimal) ". " !important;
+}
+
+.invitation-quill-view .ql-editor,
+.custom-quill-container.invitation-quill-view .ql-editor {
+  counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+
+/* Legacy <ul> bullet lists if any remain in saved HTML */
+.invitation-quill-view .ql-editor ul,
+.custom-quill-container.invitation-quill-view .ql-editor ul {
+  list-style-type: disc !important;
+  padding-left: 1.5em !important;
+  margin: 0 !important;
+}
+
+.invitation-quill-view .ql-editor ul > li,
+.custom-quill-container.invitation-quill-view .ql-editor ul > li {
+  list-style-type: disc !important;
+  display: list-item !important;
+  padding-left: 0.25em !important;
+}
+
+.custom-quill-container.invitation-quill-view .ql-editor em,
+.custom-quill-container.invitation-quill-view .ql-editor i,
+.invitation-quill-view.ql-snow .ql-editor em,
+.invitation-quill-view.ql-snow .ql-editor i {
   font-style: italic;
 }
 
-.custom-quill-container .ql-editor strong,
-.custom-quill-container .ql-editor b {
+.custom-quill-container.invitation-quill-view .ql-editor strong,
+.custom-quill-container.invitation-quill-view .ql-editor b,
+.invitation-quill-view.ql-snow .ql-editor strong,
+.invitation-quill-view.ql-snow .ql-editor b {
   font-weight: 700;
+}
+
+.invitation-quill-view .ql-editor img,
+.invitation-quill-view .ql-editor video,
+.invitation-quill-view .ql-editor iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.invitation-quill-view .ql-editor pre {
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 /* Hide scrollbars utility for the sidebar */
@@ -115,125 +249,4 @@ button {
 .sidebar-scrollbar-none::-webkit-scrollbar {
   width: 0;
   height: 0;
-}
-
-/* Public invitation page (Quill HTML output) */
-.invitation-content {
-  color: #374151;
-  line-height: 1.8;
-  font-size: 1.0625rem;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-}
-
-.invitation-content * {
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.invitation-content p,
-.invitation-content li,
-.invitation-content blockquote,
-.invitation-content h1,
-.invitation-content h2,
-.invitation-content h3,
-.invitation-content h4,
-.invitation-content h5,
-.invitation-content h6 {
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  white-space: normal !important;
-}
-
-.invitation-content img,
-.invitation-content video,
-.invitation-content iframe {
-  max-width: 100% !important;
-  height: auto !important;
-}
-
-.invitation-content pre {
-  white-space: pre-wrap !important;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-.invitation-content h1,
-.invitation-content h2,
-.invitation-content h3 {
-  color: #1d3557;
-  font-weight: 700;
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  line-height: 1.3;
-}
-
-.invitation-content h1 {
-  font-size: clamp(1.5rem, 4vw, 1.875rem);
-}
-
-.invitation-content h2 {
-  font-size: clamp(1.25rem, 3vw, 1.5rem);
-}
-
-.invitation-content h3 {
-  font-size: clamp(1.125rem, 2.5vw, 1.25rem);
-}
-
-.invitation-content p {
-  margin-bottom: 1.125em;
-}
-
-.invitation-content ul,
-.invitation-content ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.invitation-content ul {
-  list-style-type: disc;
-}
-
-.invitation-content ol {
-  list-style-type: decimal;
-}
-
-.invitation-content li {
-  margin-bottom: 0.5em;
-}
-
-.invitation-content blockquote {
-  margin: 1.25em 0;
-  padding: 0.75em 1.25em;
-  border-left: 4px solid #a8dadc;
-  background: #f8fafc;
-  color: #475569;
-  border-radius: 0 0.5rem 0.5rem 0;
-}
-
-.invitation-content a {
-  color: #457b9d;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  overflow-wrap: anywhere;
-}
-
-.invitation-content a:hover {
-  color: #1d3557;
-}
-
-.invitation-content strong,
-.invitation-content b {
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.invitation-content em,
-.invitation-content i {
-  font-style: italic;
 }

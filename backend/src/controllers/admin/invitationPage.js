@@ -1,4 +1,7 @@
 const InvitationPage = require("../../models/invitationPage.js");
+const {
+  normalizeInvitationHtml,
+} = require("../../utils/invitationHtml.js");
 
 const DEFAULT_KEY = "default";
 
@@ -16,6 +19,10 @@ function ensureLinksOpenInNewTab(html) {
   });
 }
 
+function formatInvitationHtml(html) {
+  return normalizeInvitationHtml(ensureLinksOpenInNewTab(html));
+}
+
 const getInvitationPage = async (req, res) => {
   try {
     const key = String(req.query.key || DEFAULT_KEY).trim() || DEFAULT_KEY;
@@ -28,7 +35,7 @@ const getInvitationPage = async (req, res) => {
         data: {
           key,
           title: doc?.title || "",
-          html: doc?.html || "",
+          html: normalizeInvitationHtml(doc?.html || ""),
           updatedAt: doc?.updatedAt || null,
         },
       },
@@ -47,7 +54,7 @@ const upsertInvitationPage = async (req, res) => {
   try {
     const key = String(req.body?.key || DEFAULT_KEY).trim() || DEFAULT_KEY;
     const title = String(req.body?.title || "");
-    const html = ensureLinksOpenInNewTab(String(req.body?.html || ""));
+    const html = formatInvitationHtml(String(req.body?.html || ""));
 
     const doc = await InvitationPage.findOneAndUpdate(
       { key },
@@ -61,7 +68,7 @@ const upsertInvitationPage = async (req, res) => {
         data: {
           key: doc.key,
           title: doc.title || "",
-          html: doc.html || "",
+          html: normalizeInvitationHtml(doc.html || ""),
           updatedAt: doc.updatedAt || null,
         },
       },

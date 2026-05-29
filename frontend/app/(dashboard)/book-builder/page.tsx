@@ -1,5 +1,10 @@
 "use client";
-import { luluOptions, generatePodPackageId } from "@/utils/luluConfig";
+import {
+  luluOptions,
+  generatePodPackageId,
+  extractTrimCodeFromPod,
+  getTrimLabel,
+} from "@/utils/luluConfig";
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -56,6 +61,8 @@ type BookType = {
   items: BookItem[];
   pdfUrl?: string;
   coverPdfUrl?: string;
+  pod_package_id?: string;
+  pdf_trim_code?: string;
 };
 
 const DRAFT_BOOK_KEY = "draftBookId";
@@ -168,6 +175,11 @@ export default function BookBuilderPage() {
       const b = await getBook(id, token);
       setBook(b as any);
       setDraftTitle((b as any)?.title || "");
+      const savedPod = (b as any)?.pod_package_id as string | undefined;
+      if (savedPod) {
+        const savedTrim = extractTrimCodeFromPod(savedPod);
+        if (savedTrim) setTrimSize(savedTrim);
+      }
     } catch (e: any) {
       toast.error(e?.message || "Failed to load book");
     } finally {
@@ -283,7 +295,7 @@ export default function BookBuilderPage() {
   const [shippingLevel, setShippingLevel] = useState("MAIL");
   const [shippingOption, setShippingOption] = useState("MAIL");
   const [trimSize, setTrimSize] = useState<string>(
-    luluOptions.defaults.trimSize || "0744X0968",
+    luluOptions.defaults.trimSize || "0600X0900",
   );
   const [binding, setBinding] = useState<string>(
     luluOptions.bindings[1].code as string,
@@ -318,6 +330,16 @@ export default function BookBuilderPage() {
       }),
     );
   }, [trimSize, binding, interiorColor, paperType, coverFinish]);
+
+  const hasPdf = Boolean((book && book.pdfUrl) || pdfUrl);
+
+  /** True when UI POD selection no longer matches the generated interior PDF. */
+  const pdfOutOfSync = useMemo(() => {
+    if (!hasPdf) return false;
+    const generatedPod = book?.pod_package_id;
+    if (!generatedPod) return true;
+    return generatedPod !== podPackageId;
+  }, [hasPdf, book?.pod_package_id, podPackageId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -567,6 +589,20 @@ export default function BookBuilderPage() {
 
   const handleAddToCart = async () => {
     if (!bookId) return;
+
+    if (!hasPdf) {
+      toast.error("Generate the PDF before ordering.");
+      return;
+    }
+    if (pdfOutOfSync) {
+      const generatedTrim = book?.pdf_trim_code || extractTrimCodeFromPod(book?.pod_package_id || "");
+      const selectedTrim = extractTrimCodeFromPod(podPackageId);
+      toast.error(
+        `Book format changed (${getTrimLabel(selectedTrim || "")}) but the PDF was generated for ${getTrimLabel(generatedTrim || "another size")}. Regenerate the PDF, then add to cart.`,
+      );
+      return;
+    }
+
     setAddingToCart(true);
     try {
       const token = localStorage.getItem("token");
@@ -1831,10 +1867,18 @@ export default function BookBuilderPage() {
                   </Button> */}
                 </div>
               )}
+              {pdfOutOfSync && (
+                <p className="w-full text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  The selected book size/binding does not match the generated PDF.
+                  Regenerate the PDF after changing format options.
+                </p>
+              )}
               {hasPaidSubscription && (
                 <Button
                   onClick={handleAddToCart}
-                  disabled={addingToCart || storyList.length === 0}
+                  disabled={
+                    addingToCart || storyList.length === 0 || pdfOutOfSync || !hasPdf
+                  }
                   className="ml-auto bg-green-600 text-white"
                 >
                   {addingToCart ? "Adding..." : "Order Book"}

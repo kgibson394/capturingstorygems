@@ -9,6 +9,7 @@ import {
   getInvitationPageAdmin,
   upsertInvitationPageAdmin,
 } from "@/api/invitationPageApis";
+import { normalizeInvitationHtml } from "@/utils/invitationHtml";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), {
   ssr: false,
@@ -67,7 +68,7 @@ export default function InvitationEditorPage() {
       }
       const data = await getInvitationPageAdmin(token, PAGE_KEY);
       setTitle(data.title || "");
-      setContent(data.html || "");
+      setContent(normalizeInvitationHtml(data.html || ""));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to load invitation page";
@@ -167,7 +168,7 @@ export default function InvitationEditorPage() {
             />
           </div>
 
-          <div className="custom-quill-container rounded-xl border border-gray-200 overflow-hidden">
+          <div className="custom-quill-container invitation-quill-view rounded-xl border border-gray-200 overflow-hidden">
             {loading ? (
               <p className="p-6 text-sm text-gray-500">Loading editor...</p>
             ) : (
