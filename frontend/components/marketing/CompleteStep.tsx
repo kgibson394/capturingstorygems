@@ -1,5 +1,6 @@
 import React from "react";
 import { MarketingStep } from "@/api/marketingPageApis";
+import LinkifiedText from "./LinkifiedText";
 
 const defaultSteps: MarketingStep[] = [
   {
@@ -28,10 +29,13 @@ const CompleteStep = ({
         {/* Header Section */}
         <div className="mb-8">
           <h2 className="font-serif text-2xl md:text-3xl font-semibold text-[#2E2E2E] mb-2 tracking-tight leading-[1.15] whitespace-pre-line">
-            {content?.title ?? "Complete"}
+            <LinkifiedText text={content?.title ?? "Complete"} className="whitespace-pre-line" />
           </h2>
           <p className="text-gray-500 text-sm md:text-base leading-relaxed whitespace-pre-line">
-            {content?.subtitle ?? "Save and celebrate your achievement"}
+            <LinkifiedText
+              text={content?.subtitle ?? "Save and celebrate your achievement"}
+              className="whitespace-pre-line"
+            />
           </p>
         </div>
 
@@ -44,14 +48,16 @@ const CompleteStep = ({
               </div>
               <div className="flex-1">
                 <span className="block text-[#76AEC3] text-[11px] font-semibold tracking-[0.2em] uppercase mb-2 whitespace-pre-line">
-                  {step.label}
+                  <LinkifiedText text={step.label} className="whitespace-pre-line" />
                 </span>
                 <h3 className="font-serif text-xl font-medium text-[#2E2E2E] mb-3 leading-tight whitespace-pre-line">
-                  {step.title}
+                  <LinkifiedText text={step.title} className="whitespace-pre-line" />
                 </h3>
                 <div className="text-gray-600 text-sm md:text-base space-y-2 leading-relaxed">
                   {step.points?.map((point, pointIdx) => (
-                    <p key={pointIdx} className="whitespace-pre-line">{point}</p>
+                    <p key={pointIdx}>
+                      <LinkifiedText text={point} className="whitespace-pre-line" />
+                    </p>
                   ))}
                 </div>
               </div>

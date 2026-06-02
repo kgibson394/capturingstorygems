@@ -1,5 +1,6 @@
 import React from "react";
 import MarketingVideo from "./MarketingVideo";
+import LinkifiedText from "./LinkifiedText";
 
 type PracticeStoryContent = {
   label?: string;
@@ -15,18 +16,29 @@ const PracticeStoryTwoComponent = ({ content }: { content?: PracticeStoryContent
       <div className="max-w-6xl mx-auto flex flex-col items-start">
         {/* Top Label */}
         <span className="text-[#76AEC3] text-xs font-semibold tracking-[0.2em] uppercase mb-4 whitespace-pre-line">
-          {content?.label ?? "Practice Story (2 of 2)"}
+          <LinkifiedText
+            text={content?.label ?? "Practice Story (2 of 2)"}
+            className="whitespace-pre-line"
+          />
         </span>
 
         {/* Main Heading */}
         <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-[#2E2E2E] mb-4 tracking-tight leading-[1.15] whitespace-pre-line">
-          {content?.title ?? "Practice 2: Use Your Own Memory"}
+          <LinkifiedText
+            text={content?.title ?? "Practice 2: Use Your Own Memory"}
+            className="whitespace-pre-line"
+          />
         </h2>
 
         {/* Description Paragraph */}
-        <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed mb-8 max-w-3xl whitespace-pre-line">
-          {content?.description ??
-            "Now it's time to use your own memory experience. Follow the same process, but this time with a memory that's meaningful to you."}
+        <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed mb-8 max-w-3xl">
+          <LinkifiedText
+            text={
+              content?.description ??
+              "Now it's time to use your own memory experience. Follow the same process, but this time with a memory that's meaningful to you."
+            }
+            className="whitespace-pre-line"
+          />
         </p>
 
         <MarketingVideo videoUrl={content?.videoUrl} />

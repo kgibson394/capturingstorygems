@@ -1,4 +1,5 @@
 import React from "react";
+import LinkifiedText from "./LinkifiedText";
 
 type HeroContent = {
   backgroundImageUrl?: string;
@@ -31,18 +32,29 @@ const HeroComponent = ({ content }: { content?: HeroContent }) => {
         <div className="max-w-3xl space-y-4 md:space-y-5">
           {/* Main Heading (Using Serif Font) */}
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-semibold leading-[1.15] tracking-tight whitespace-pre-line">
-            {content?.title ?? "Begin Memory to Story Experience"}
+            <LinkifiedText
+              text={content?.title ?? "Begin Memory to Story Experience"}
+              className="whitespace-pre-line"
+            />
           </h1>
 
           {/* Subheading (Using Serif Font) */}
           <h2 className="font-serif text-xl md:text-2xl font-medium tracking-tight whitespace-pre-line">
-            {content?.subtitle ?? "Starter Kit Free 10-Day Trial"}
+            <LinkifiedText
+              text={content?.subtitle ?? "Starter Kit Free 10-Day Trial"}
+              className="whitespace-pre-line"
+            />
           </h2>
 
           {/* Body Paragraph (Using default Sans Font) */}
-          <p className="text-sm sm:text-base text-white/90 max-w-2xl leading-relaxed whitespace-pre-line">
-            {content?.description ??
-              "In the first memory to story practice... we're not asking you to think of your own memory experience yet."}
+          <p className="text-sm sm:text-base text-white/90 max-w-2xl leading-relaxed">
+            <LinkifiedText
+              text={
+                content?.description ??
+                "In the first memory to story practice... we're not asking you to think of your own memory experience yet."
+              }
+              className="whitespace-pre-line"
+            />
           </p>
         </div>
       </div>

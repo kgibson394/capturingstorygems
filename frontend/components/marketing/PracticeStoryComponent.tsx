@@ -1,5 +1,6 @@
 import React from "react";
 import MarketingVideo from "./MarketingVideo";
+import LinkifiedText from "./LinkifiedText";
 
 type PracticeStoryContent = {
   label?: string;
@@ -15,18 +16,29 @@ const PracticeStoryComponent = ({ content }: { content?: PracticeStoryContent })
       <div className="max-w-6xl mx-auto flex flex-col items-start">
         {/* Top Label */}
         <span className="text-[#76AEC3] text-xs font-semibold tracking-[0.2em] uppercase mb-4 whitespace-pre-line">
-          {content?.label ?? "Practice Story (1 of 2)"}
+          <LinkifiedText
+            text={content?.label ?? "Practice Story (1 of 2)"}
+            className="whitespace-pre-line"
+          />
         </span>
 
         {/* Main Heading (Assuming 'font-serif' is configured as shown previously) */}
         <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-[#2E2E2E] mb-4 tracking-tight leading-[1.15] whitespace-pre-line">
-          {content?.title ?? "Practice 1: Just Experience the Core Process"}
+          <LinkifiedText
+            text={content?.title ?? "Practice 1: Just Experience the Core Process"}
+            className="whitespace-pre-line"
+          />
         </h2>
 
         {/* Description Paragraph */}
-        <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed mb-8 max-w-3xl whitespace-pre-line">
-          {content?.description ??
-            "In the first memory to story practice... we're not asking you to think of your own memory experience yet. Instead, you'll use a memory example we've created for the first practice story. Our goal with the practice stories is not perfection... it's only to experience the process."}
+        <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed mb-8 max-w-3xl">
+          <LinkifiedText
+            text={
+              content?.description ??
+              "In the first memory to story practice... we're not asking you to think of your own memory experience yet. Instead, you'll use a memory example we've created for the first practice story. Our goal with the practice stories is not perfection... it's only to experience the process."
+            }
+            className="whitespace-pre-line"
+          />
         </p>
 
         <MarketingVideo videoUrl={content?.videoUrl} />

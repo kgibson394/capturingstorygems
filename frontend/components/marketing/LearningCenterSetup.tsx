@@ -1,6 +1,7 @@
 import React from "react";
 import { MarketingStep } from "@/api/marketingPageApis";
 import MarketingVideo from "./MarketingVideo";
+import LinkifiedText from "./LinkifiedText";
 
 const defaultSteps: MarketingStep[] = [
   {
@@ -71,17 +72,28 @@ const LearningCenterSetup = ({
         {/* Top Header Section */}
         <div className="mb-8">
           <span className="text-[#76AEC3] text-xs font-semibold tracking-[0.2em] uppercase mb-4 block whitespace-pre-line">
-            {content?.label ?? "Learning Center"}
+            <LinkifiedText
+              text={content?.label ?? "Learning Center"}
+              className="whitespace-pre-line"
+            />
           </span>
           {/* Main Heading */}
           <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-[#2E2E2E] mb-4 tracking-tight leading-[1.15] whitespace-pre-line">
-            {content?.title ?? "CSG Learning Center - Free 10-Day Trial"}
+            <LinkifiedText
+              text={content?.title ?? "CSG Learning Center - Free 10-Day Trial"}
+              className="whitespace-pre-line"
+            />
           </h2>
 
           {/* Description Paragraph */}
-          <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed max-w-3xl whitespace-pre-line">
-            {description ||
-              "Great work completing your practice stories. Start your free Learning Center trial and follow these steps to continue your story journey."}
+          <p className="text-[#6C6C6C] text-sm md:text-base leading-relaxed max-w-3xl">
+            <LinkifiedText
+              text={
+                description ||
+                "Great work completing your practice stories. Start your free Learning Center trial and follow these steps to continue your story journey."
+              }
+              className="whitespace-pre-line"
+            />
           </p>
         </div>
 
@@ -100,14 +112,16 @@ const LearningCenterSetup = ({
                 </div>
                 <div className="flex-1">
                   <span className="block text-[#76AEC3] text-[11px] font-semibold tracking-[0.2em] uppercase mb-2 whitespace-pre-line">
-                    {step.label}
+                    <LinkifiedText text={step.label} className="whitespace-pre-line" />
                   </span>
                   <h4 className="font-serif text-xl font-medium text-[#2E2E2E] mb-3 leading-tight whitespace-pre-line">
-                    {step.title}
+                    <LinkifiedText text={step.title} className="whitespace-pre-line" />
                   </h4>
                   <div className="text-gray-600 text-sm md:text-base space-y-2 leading-relaxed">
                     {step.points?.map((point, pointIdx) => (
-                      <p key={pointIdx} className="whitespace-pre-line">{point}</p>
+                      <p key={pointIdx}>
+                        <LinkifiedText text={point} className="whitespace-pre-line" />
+                      </p>
                     ))}
                   </div>
                 </div>
