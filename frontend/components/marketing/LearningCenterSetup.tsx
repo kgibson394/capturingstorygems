@@ -9,7 +9,7 @@ const defaultSteps: MarketingStep[] = [
     label: "Step 1 of 4",
     title: "Create Your Learning Center Account",
     points: [
-      "Use your active email address to create your free 10-day trial account.",
+      "Use your active email address to create your free 15-day trial account.",
       "Complete the required registration details and submit the form.",
     ],
   },
@@ -80,7 +80,7 @@ const LearningCenterSetup = ({
           {/* Main Heading */}
           <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-semibold text-[#2E2E2E] mb-4 tracking-tight leading-[1.15] whitespace-pre-line">
             <LinkifiedText
-              text={content?.title ?? "CSG Learning Center - Free 10-Day Trial"}
+              text={content?.title ?? "CSG Learning Center - Free 15-Day Trial"}
               className="whitespace-pre-line"
             />
           </h2>

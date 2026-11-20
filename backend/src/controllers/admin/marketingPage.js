@@ -18,7 +18,7 @@ const DEFAULT_CONTENT = {
   hero: {
     backgroundImageUrl: "",
     title: "Begin Memory to Story Experience",
-    subtitle: "Starter Kit Free 10-Day Trial",
+    subtitle: "Starter Kit Free 15-Day Trial",
     description:
       "In the first memory to story practice... we're not asking you to think of your own memory experience yet.",
   },
@@ -202,13 +202,13 @@ const DEFAULT_CONTENT = {
   },
   learningCenter: {
     label: "Learning Center",
-    title: "CSG Learning Center - Free 10-Day Trial",
+    title: "CSG Learning Center - Free 15-Day Trial",
     description:
       "Great work completing your practice stories. Start your free Learning Center trial and follow these steps to continue your story journey.",
     paragraphs: [
       "Great work completing your practice stories... this is an important step.",
       "To continue, create your free account in the Capturing Story Gems - Learning Center.",
-      "Your 10-day trial gives you access to guided modules with lessons and activities, all organized and ready for you.",
+      "Your 15-day trial gives you access to guided modules with lessons and activities, all organized and ready for you.",
     ],
     videoUrl: "",
     steps: [
@@ -217,7 +217,7 @@ const DEFAULT_CONTENT = {
         label: "Step 1 of 4",
         title: "Create Your Learning Center Account",
         points: [
-          "Use your active email address to create your free 10-day trial account.",
+          "Use your active email address to create your free 15-day trial account.",
           "Complete the required registration details and submit the form.",
         ],
       },
@@ -258,7 +258,7 @@ const DEFAULT_CONTENT = {
           label: "Step 1 of 2",
           title: "Create a New Account",
           points: [
-            "Here's how to Access Your \"10-Day Trial\" Learning Modules at CSG's Learning Center",
+            "Here's how to Access Your \"15-Day Trial\" Learning Modules at CSG's Learning Center",
           ],
         },
         {

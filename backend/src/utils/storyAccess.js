@@ -1,6 +1,6 @@
 const Subscription = require("../models/subscription.js");
 
-const TRIAL_DAYS = 10;
+const TRIAL_DAYS = 15;
 
 function calcTrialEndDate(startDate) {
   const end = new Date(startDate);

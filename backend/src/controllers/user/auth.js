@@ -17,7 +17,7 @@ const {
 const salt = configurations.salt;
 const jwtSecret = configurations.jwtSecret;
 
-const TRIAL_DAYS = 10;
+const TRIAL_DAYS = 15;
 
 function _calcTrialEndDate(startDate) {
   const end = new Date(startDate);

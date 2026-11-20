@@ -41,7 +41,7 @@ const HeroComponent = ({ content }: { content?: HeroContent }) => {
           {/* Subheading (Using Serif Font) */}
           <h2 className="font-serif text-xl md:text-2xl font-medium tracking-tight whitespace-pre-line">
             <LinkifiedText
-              text={content?.subtitle ?? "Starter Kit Free 10-Day Trial"}
+              text={content?.subtitle ?? "Starter Kit Free 15-Day Trial"}
               className="whitespace-pre-line"
             />
           </h2>

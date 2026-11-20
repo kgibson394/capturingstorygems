@@ -135,7 +135,7 @@ export function LeadModal({ isOpen, onClose, onSuccess }: LeadModalProps) {
               </div>
 
               <p className="text-xs text-gray-800 font-semibold">
-                30-Minutes to Story Free-10-Day-Trial
+                30-Minutes to Story Free-15-Day-Trial
               </p>
             </div>
 
